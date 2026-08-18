@@ -1,0 +1,64 @@
+body {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    flex-direction: column;
+    margin: 0;
+    min-height: 100vh;
+    overflow-x: hidden;
+    overflow-y: hidden;
+
+    background:
+        radial-gradient(
+            circle at top left,
+            #ffffff,
+            #bcb7b7,
+            #7e7d7d,
+            transparent 70%
+        ),
+        radial-gradient(
+            circle at bottom right,
+            #000000,
+            #121111,
+            #181818,
+            transparent 30%
+        ),
+        #181818;
+}
+
+.search_box {
+    position: relative;
+    width: 400px;
+}
+
+.input_box {
+    width: 100%;
+    padding: 15px 50px 15px 15px;
+    box-sizing: border-box;
+    border: 2px solid #bbbbbb;
+    border-radius: 10px;
+}
+
+.submition {
+    position: absolute;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 40px;
+    height: 40px;
+
+    border: none;
+    border-radius: 7px;
+
+    background: #ffffff;
+    color: rgb(0, 0, 0);
+
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.submition img {
+    width: 25px;
+    height: 25px;
+}

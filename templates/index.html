@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
+    <title>Document</title>
+
+
+
+</head>
+<body>
+
+    <h1>WELCOME TO THE FREE MOVIE PORTAl</h1>
+
+
+<form action="/downdload" method="POST">
+
+<div class="search_box">
+    
+    <input 
+        class="input_box" 
+        type="text" 
+        name="movie"
+        placeholder="ENTER THE NAME OF THE MOVIE"
+    >
+
+    <button class="submition" type="submit" ><img src="{{ url_for('static', filename='search-svgrepo-com-gradient.svg') }}" alt="search"></button>
+</div>
+
+</form>
+
+<P>TYPE THE MOVIE NAME WITH PROPPER SPACING </P>
+
+</body>
+</html>
