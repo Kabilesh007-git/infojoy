@@ -1,0 +1,7 @@
+<svg width="64" height="64" viewBox="0 0 240 240" xmlns="http://www.w3.org/2000/svg">
+  <title>INFOJOY icon</title>
+  <rect x="0" y="0" width="240" height="240" rx="54" fill="#0B0B0F"/>
+  <circle cx="84" cy="120" r="42" stroke="#FFFFFF" stroke-width="13" fill="none"/>
+  <circle cx="156" cy="120" r="42" stroke="#FFFFFF" stroke-width="13" fill="none"/>
+  <path d="M150.2,104.5 L172.0,117.4 Q176.3,120 172.0,122.6 L150.2,135.5 Q145.9,138.1 145.9,133.1 L145.9,106.9 Q145.9,101.9 150.2,104.5 Z" fill="#E8B84B"/>
+</svg>

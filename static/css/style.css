@@ -52,7 +52,7 @@ body {
     border-radius: 7px;
 
     background: #ffffff;
-    color: rgb(0, 0, 0);
+    color: #000000;
 
     font-size: 20px;
     cursor: pointer;
@@ -61,4 +61,12 @@ body {
 .submition img {
     width: 25px;
     height: 25px;
+}
+
+
+#message img {
+    width: 20px;
+    height: 20px;
+    vertical-align: middle;
+    margin-right: 5px;
 }

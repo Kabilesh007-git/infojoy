@@ -3,34 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{url_for('static',filename='style.css')}}">
-    <title>Document</title>
 
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
 
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{{ url_for('static', filename='images/favicon.svg') }}">
 
+    <title>Home Page</title>
 </head>
+
 <body>
 
-    <h1>WELCOME TO THE FREE MOVIE PORTAl</h1>
+    <h1>WELCOME TO THE FREE MOVIE PORTAL</h1>
+
+    <form id="movieForm" action="/downdload" method="POST">
+
+        <div class="search_box">
+
+            <input
+                class="input_box"
+                type="text"
+                name="movie"
+                id="movie"
+                placeholder="ENTER THE NAME OF THE MOVIE"
+            >
+
+            <button class="submition" type="submit">
+                <img
+                    src="{{ url_for('static', filename='images/search.svg') }}"
+                    alt="search"
+                >
+            </button>
+
+        </div>
+
+    </form>
+
+    <p>TYPE THE MOVIE NAME WITH PROPPER SPACING</p>
+
+    <!-- Message will appear here -->
+    <p id="message">🤝{{ message }}</p>
 
 
-<form action="/downdload" method="POST">
+    <script>
+        document.getElementById("movieForm").addEventListener("submit", function(event) {
 
-<div class="search_box">
-    
-    <input 
-        class="input_box" 
-        type="text" 
-        name="movie"
-        placeholder="ENTER THE NAME OF THE MOVIE"
-    >
+            let movie = document.getElementById("movie").value.trim();
+            let message = document.getElementById("message");
 
-    <button class="submition" type="submit" ><img src="{{ url_for('static', filename='search-svgrepo-com-gradient.svg') }}" alt="search"></button>
-</div>
+            if (movie.length === 0) {
 
-</form>
+                // Stop form from going to Flask
+                event.preventDefault();
 
-<P>TYPE THE MOVIE NAME WITH PROPPER SPACING </P>
+                // Change the text on the same page
+               message.innerHTML = `
+                    <img src="{{ url_for('static', filename='images/alert.svg') }}"
+                        alt="alert">
+                    ENTER THE MOVIE NAME
+                `;
+
+            }
+
+        });
+    </script>
 
 </body>
 </html>
