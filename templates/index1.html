@@ -1,14 +1,261 @@
-<!DOCTYPE html>
-<html lang="en">
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{{url_for('static',filename='css/style1.css')}}">
-    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg')}}">
-    <title>Document</title>
-</head>
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style1.css') }}?v=22"
+    >
+    <link rel="icon"
+          type="image/svg+xml"
+          href="{{ url_for('static', filename='images/favicon.svg') }}">
+
+    <title>INFOJOY QUALITY</title>
+
+
 <body>
-    <h1>hello</h1>
-    
+
+<div class="quality-container">
+
+    <form
+        id="qualityForm"
+        class="quality-form"
+    >
+
+        <input
+            type="hidden"
+            id="movie"
+            value="{{ movie }}"
+        >
+
+        <label for="quality">
+            Choose Quality
+        </label>
+
+        <div class="select-wrapper">
+
+            <select
+                id="quality"
+                name="quality"
+                class="quality-select"
+                required
+            >
+
+                <option
+                    value=""
+                    disabled
+                    selected
+                >
+                    Select Quality
+                </option>
+
+                {% for item in counts %}
+
+                <option value="{{ item }}">
+                    {{ item }}
+                </option>
+
+                {% endfor %}
+
+            </select>
+
+        </div>
+
+        <button
+            type="submit"
+            id="selectButton"
+            class="select-btn"
+        >
+            Select
+        </button>
+
+        <div
+            id="message"
+            class="message"
+        ></div>
+
+    </form>
+
+</div>
+
+
+<script>
+
+const form =
+    document.getElementById("qualityForm");
+
+const movieBox =
+    document.getElementById("movie");
+
+const qualityBox =
+    document.getElementById("quality");
+
+const button =
+    document.getElementById("selectButton");
+
+const message =
+    document.getElementById("message");
+
+
+form.addEventListener(
+    "submit",
+    async function(event) {
+
+        event.preventDefault();
+
+        const movie =
+            movieBox.value.trim();
+
+        const quality =
+            qualityBox.value.trim();
+
+
+        if (!movie) {
+
+            message.textContent =
+                "Movie name is missing";
+
+            return;
+        }
+
+
+        if (!quality) {
+
+            message.textContent =
+                "Please select a quality";
+
+            return;
+        }
+
+
+        button.disabled = true;
+
+        qualityBox.disabled = true;
+
+        message.textContent =
+            "Processing quality...";
+
+
+        try {
+
+            const formData =
+                new FormData();
+
+            formData.append(
+                "movie",
+                movie
+            );
+
+            formData.append(
+                "quality",
+                quality
+            );
+
+
+            const response =
+                await fetch(
+                    "{{ url_for('select_quality') }}",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            const text =
+                await response.text();
+
+
+            console.log(
+                "STATUS:",
+                response.status
+            );
+
+            console.log(
+                "SERVER:",
+                text
+            );
+
+
+            let result;
+
+
+            try {
+
+                result =
+                    JSON.parse(text);
+
+            } catch (error) {
+
+                console.error(
+                    "INVALID JSON:",
+                    text
+                );
+
+                message.textContent =
+                    "Server returned an invalid response.";
+
+                button.disabled = false;
+
+                qualityBox.disabled = false;
+
+                return;
+            }
+
+
+            if (
+                !response.ok ||
+                !result.success
+            ) {
+
+                message.textContent =
+                    result.error ||
+                    "Quality processing failed.";
+
+                button.disabled = false;
+
+                qualityBox.disabled = false;
+
+                return;
+            }
+
+
+            message.textContent =
+                "Quality selected successfully.";
+
+
+            window.location.href =
+                result.next ||
+                "/movie_details";
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "FETCH ERROR:",
+                error
+            );
+
+            message.textContent =
+                "Connection error: " +
+                error.message;
+
+            button.disabled = false;
+
+            qualityBox.disabled = false;
+        }
+
+    }
+);
+
+</script>
+
 </body>
+
 </html>

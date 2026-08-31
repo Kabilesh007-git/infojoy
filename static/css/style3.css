@@ -1,0 +1,876 @@
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+/* =====================================================
+   HTML
+   ===================================================== */
+
+html {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+html::-webkit-scrollbar {
+    display: none;
+}
+
+
+/* =====================================================
+   BODY
+   ===================================================== */
+
+body {
+    background: rgb(21, 21, 21);
+    color: #fff;
+    font-family: Arial, sans-serif;
+    min-height: 100vh;
+}
+
+
+/* =====================================================
+   MOVIE CARD
+   ===================================================== */
+
+.movie-card {
+    position: relative;
+
+    width: 90%;
+    max-width: 1380px;
+
+    min-height: 760px;
+
+    margin: 30px auto;
+
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    background: #080808;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.8);
+}
+.movie-card {
+    position: relative;
+
+    width: 90%;
+    max-width: 1280px;
+
+    min-height: 760px;
+
+    margin: 30px auto;
+
+    overflow: hidden;
+
+    border-radius: 18px;
+
+    background: #080808;
+
+    box-shadow:
+        0 20px 60px rgba(0, 0, 0, 0.8);
+}
+
+
+/* =====================================================
+   BACKGROUND
+   ===================================================== */
+
+.background {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+
+    /* IMPORTANT: background keeps original height */
+    height: 760px;
+
+    z-index: 0;
+
+    background-repeat: no-repeat;
+
+    background-size: cover;
+
+    background-position: center center;
+
+    filter: grayscale(100%);
+
+    /* REMOVE THIS */
+    transform: none;
+
+    pointer-events: none;
+}
+
+
+/* =====================================================
+   OVERLAY
+   ===================================================== */
+
+.overlay {
+    position: absolute;
+
+    top: 0;
+    left: 0;
+
+    width: 100%;
+
+    /* Same fixed height as background */
+    height: 760px;
+
+    z-index: 1;
+
+    pointer-events: none;
+
+    background:
+        linear-gradient(
+            90deg,
+            rgba(0, 0, 0, 0.97) 0%,
+            rgba(0, 0, 0, 0.88) 30%,
+            rgba(0, 0, 0, 0.72) 65%,
+            rgba(0, 0, 0, 0.55) 100%
+        );
+}
+
+
+/* =====================================================
+   CONTENT
+   ===================================================== */
+
+.content {
+    position: relative;
+
+    z-index: 2;
+
+    display: flex;
+
+    align-items: flex-start;
+
+    gap: 55px;
+
+    min-height: 760px;
+
+    padding: 100px 60px 60px;
+}
+
+
+/* =====================================================
+   POSTER BOX
+   IMPORTANT:
+   FIXED SIZE
+   ===================================================== */
+
+.poster-box {
+    flex: 0 0 350px;
+
+    width: 350px;
+
+    height: 560px;
+
+    min-width: 350px;
+    min-height: 560px;
+    max-width: 350px;
+    max-height: 560px;
+
+    overflow: hidden;
+
+    border-radius: 12px;
+
+    border: 2px solid #444;
+
+    background: #111;
+
+    box-shadow:
+        0 15px 45px rgba(0, 0, 0, 0.9);
+
+    /*
+       Prevent flex layout from resizing
+       the poster when download status appears.
+    */
+    align-self: flex-start;
+}
+
+
+/* =====================================================
+   POSTER IMAGE
+   ===================================================== */
+
+.poster {
+    display: block;
+
+    width: 100% !important;
+
+    height: 100% !important;
+
+    min-width: 100%;
+
+    min-height: 100%;
+
+    max-width: none;
+
+    max-height: none;
+
+    object-fit: cover;
+
+    object-position: center;
+
+    /*
+       Important:
+       image will NEVER stretch with content.
+    */
+    flex-shrink: 0;
+}
+
+
+/* =====================================================
+   MOVIE INFORMATION
+   ===================================================== */
+
+.movie-info {
+    flex: 1 1 auto;
+
+    min-width: 0;
+
+    max-width: 800px;
+
+    padding-top: 0;
+}
+
+
+/* =====================================================
+   MOVIE TITLE
+   ===================================================== */
+
+.movie-info h1 {
+    font-size: 58px;
+
+    line-height: 1;
+
+    font-weight: 700;
+
+    letter-spacing: 2px;
+
+    text-transform: uppercase;
+
+    text-align: left;
+
+    margin-bottom: 40px;
+
+    color: #fff;
+}
+
+
+/* =====================================================
+   DETAILS
+   ===================================================== */
+
+.details {
+    display: grid;
+
+    grid-template-columns: 1fr 1fr;
+
+    column-gap: 45px;
+
+    row-gap: 0;
+
+    width: 100%;
+
+    margin-bottom: 25px;
+}
+
+
+/* =====================================================
+   DETAIL
+   ===================================================== */
+
+.detail {
+    display: flex;
+
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 8px;
+
+    min-height: 81px;
+
+    padding: 12px 0;
+
+    border-bottom:
+        1px solid rgba(255, 255, 255, 0.16);
+}
+
+
+/* =====================================================
+   DETAIL KEY
+   ===================================================== */
+
+.detail-key {
+    color: #999;
+
+    font-size: 13px;
+
+    font-weight: 400;
+
+    text-transform: uppercase;
+
+    letter-spacing: 0.3px;
+}
+
+
+/* =====================================================
+   DETAIL VALUE
+   ===================================================== */
+
+.detail-value {
+    color: #fff;
+
+    font-size: 16px;
+
+    line-height: 1.35;
+
+    word-break: break-word;
+}
+
+
+/* =====================================================
+   QUALITY
+   ===================================================== */
+
+.quality {
+    display: flex;
+
+    align-items: center;
+
+    gap: 18px;
+
+    width: 100%;
+
+    margin-top: 20px;
+
+    margin-bottom: 25px;
+
+    padding: 15px 18px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.20);
+
+    border-radius: 7px;
+
+    background:
+        rgba(0, 0, 0, 0.45);
+}
+
+
+.quality span {
+    color: #999;
+
+    font-size: 13px;
+
+    text-transform: uppercase;
+}
+
+
+.quality strong {
+    color: #fff;
+
+    font-size: 17px;
+
+    font-weight: 500;
+}
+
+
+/* =====================================================
+   DOWNLOAD BUTTON CONTAINER
+   ===================================================== */
+
+.download-buttons {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 20px;
+}
+
+
+/* =====================================================
+   DOWNLOAD BUTTON
+   ===================================================== */
+
+.watch-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 15px 32px;
+
+    border: none;
+
+    border-radius: 7px;
+
+    background: #fff;
+
+    color: #000;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    letter-spacing: 0.5px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+
+.watch-btn:hover {
+    background: #ddd;
+
+    transform: translateY(-2px);
+}
+
+
+.watch-btn:active {
+    transform: translateY(0);
+}
+
+
+.watch-btn:disabled {
+    opacity: 0.7;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* =====================================================
+   COMPLETED BUTTON
+   ===================================================== */
+
+.watch-btn.download-completed {
+    background: #22c55e !important;
+
+    color: #fff !important;
+
+    cursor: default;
+}
+
+
+/* =====================================================
+   CANCEL BUTTON
+   ===================================================== */
+
+.cancel-btn {
+    display: inline-flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 15px 28px;
+
+    border: 1px solid #444;
+
+    border-radius: 7px;
+
+    background: #252525;
+
+    color: #fff;
+
+    font-size: 14px;
+
+    font-weight: bold;
+
+    letter-spacing: 0.5px;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        border-color 0.2s ease,
+        transform 0.2s ease,
+        opacity 0.2s ease;
+}
+
+
+.cancel-btn:hover {
+    background: #3a3a3a;
+
+    border-color: #666;
+
+    transform: translateY(-2px);
+}
+
+
+.cancel-btn:active {
+    transform: translateY(0);
+}
+
+
+.cancel-btn:disabled {
+    opacity: 0.6;
+
+    cursor: not-allowed;
+
+    transform: none;
+}
+
+
+/* =====================================================
+   DOWNLOAD STATUS
+   ===================================================== */
+
+.download-status {
+    display: block;
+
+    width: 100%;
+
+    margin-top: 25px;
+
+    padding: 20px;
+
+    border:
+        1px solid rgba(255, 255, 255, 0.15);
+
+    border-radius: 10px;
+
+    background:
+        rgba(0, 0, 0, 0.65);
+
+    /*
+       Download box belongs only to movie-info.
+       It cannot resize the poster.
+    */
+    flex-shrink: 0;
+}
+
+
+/* =====================================================
+   DOWNLOAD TITLE
+   ===================================================== */
+
+.download-title {
+    font-size: 18px;
+
+    font-weight: 600;
+
+    margin-bottom: 18px;
+
+    color: #fff;
+
+    word-break: break-word;
+}
+
+
+/* =====================================================
+   PROGRESS BOX
+   ===================================================== */
+
+.progress-box {
+    width: 100%;
+
+    height: 8px;
+
+    margin-bottom: 18px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    background: #333;
+}
+
+
+/* =====================================================
+   PROGRESS BAR
+   ===================================================== */
+
+.progress-bar {
+    width: 0%;
+
+    height: 100%;
+
+    border-radius: 10px;
+
+    background: #fff;
+
+    transition: width 0.3s ease;
+}
+
+
+/* =====================================================
+   DOWNLOAD INFORMATION
+   ===================================================== */
+
+.download-info {
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: flex-start;
+
+    gap: 30px;
+
+    margin-top: 15px;
+}
+
+
+.download-info span {
+    color: #999;
+
+    font-size: 13px;
+}
+
+
+.download-info strong {
+    display: block;
+
+    color: #fff;
+
+    font-size: 15px;
+
+    margin-top: 5px;
+}
+
+
+/* =====================================================
+   ERROR
+   ===================================================== */
+
+.download-error {
+    color: #ef4444 !important;
+}
+
+
+/* =====================================================
+   SUCCESS
+   ===================================================== */
+
+.download-success {
+    color: #22c55e !important;
+}
+
+
+/* =====================================================
+   TABLET
+   ===================================================== */
+
+@media (max-width: 1100px) {
+
+    .content {
+        gap: 35px;
+
+        padding-left: 40px;
+        padding-right: 40px;
+    }
+
+
+    .poster-box {
+        flex-basis: 300px;
+
+        width: 300px;
+
+        min-width: 300px;
+        max-width: 300px;
+
+        height: 500px;
+
+        min-height: 500px;
+        max-height: 500px;
+    }
+
+
+    .movie-info h1 {
+        font-size: 48px;
+    }
+
+
+    .details {
+        column-gap: 30px;
+    }
+}
+
+
+/* =====================================================
+   MOBILE
+   ===================================================== */
+
+@media (max-width: 900px) {
+
+    .movie-card {
+        width: 94%;
+
+        min-height: auto;
+
+        margin: 20px auto;
+    }
+
+
+    .content {
+        flex-direction: column;
+
+        align-items: center;
+
+        min-height: auto;
+
+        padding: 40px 25px;
+
+        gap: 35px;
+    }
+
+
+    /* Fixed poster size on mobile */
+
+    .poster-box {
+        flex: 0 0 270px;
+
+        width: 270px;
+
+        min-width: 270px;
+        max-width: 270px;
+
+        height: 430px;
+
+        min-height: 430px;
+        max-height: 430px;
+
+        align-self: center;
+    }
+
+
+    .poster {
+        width: 100% !important;
+
+        height: 100% !important;
+
+        object-fit: cover;
+    }
+
+
+    .movie-info {
+        width: 100%;
+
+        max-width: 650px;
+
+        min-width: 0;
+    }
+
+
+    .movie-info h1 {
+        font-size: 42px;
+
+        text-align: center;
+
+        margin-bottom: 25px;
+    }
+
+
+    .details {
+        grid-template-columns: 1fr;
+
+        gap: 0;
+    }
+
+
+    .detail {
+        text-align: left;
+    }
+
+
+    .quality {
+        justify-content: center;
+    }
+
+
+    .download-buttons {
+        width: 100%;
+
+        flex-direction: column;
+
+        gap: 10px;
+    }
+
+
+    .watch-btn,
+    .cancel-btn {
+        width: 100%;
+    }
+}
+
+
+/* =====================================================
+   SMALL MOBILE
+   ===================================================== */
+
+@media (max-width: 500px) {
+
+    .content {
+        padding: 30px 18px;
+
+        gap: 30px;
+    }
+
+
+    .poster-box {
+        flex: 0 0 230px;
+
+        width: 230px;
+
+        min-width: 230px;
+        max-width: 230px;
+
+        height: 365px;
+
+        min-height: 365px;
+        max-height: 365px;
+    }
+
+
+    .poster {
+        width: 100% !important;
+
+        height: 100% !important;
+
+        object-fit: cover;
+    }
+
+
+    .movie-info h1 {
+        font-size: 32px;
+
+        letter-spacing: 1px;
+    }
+
+
+    .detail-value {
+        font-size: 15px;
+    }
+
+
+    .download-info {
+        flex-direction: column;
+
+        gap: 12px;
+    }
+
+
+    .download-status {
+        padding: 16px;
+    }
+
+
+    .download-title {
+        font-size: 16px;
+    }
+}

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,64 +12,417 @@
           type="image/svg+xml"
           href="{{ url_for('static', filename='images/favicon.svg') }}">
 
-    <title>Home Page</title>
+    <title>INFOJOY</title>
 </head>
 
 <body>
 
-    <h1>WELCOME TO THE FREE MOVIE PORTAL</h1>
+    <!-- ================= HEADER ================= -->
 
-    <form id="movieForm" action="/downdload" method="POST">
+    <header class="navbar">
 
-        <div class="search_box">
+        <div class="logo">
+            INFO<span>JOY</span>
+        </div>
 
-            <input
-                class="input_box"
-                type="text"
-                name="movie"
-                id="movie"
-                placeholder="ENTER THE NAME OF THE MOVIE"
-            >
+        <nav>
+            <a href="/">Home</a>
+            <a href="#features">Features</a>
+            <a href="#about">About</a>
+        </nav>
 
-            <button class="submition" type="submit">
-                <img
-                    src="{{ url_for('static', filename='images/search.svg') }}"
-                    alt="search"
-                >
-            </button>
+    </header>
+
+
+    <!-- ================= HERO ================= -->
+
+    <main>
+
+        <section class="hero">
+
+            <div class="hero-content">
+
+                <div class="badge">
+                    🎬 MOVIE SEARCH
+                </div>
+
+                <h1>
+                    Discover Your
+                    <span>Next Movie</span>
+                </h1>
+
+                <p class="hero-text">
+                    Search for your favourite movies and explore
+                    available information, qualities and details
+                    in one simple place.
+                </p>
+
+
+                <!-- SEARCH -->
+
+                <form id="movieForm"
+                      action="/downdload"
+                      method="POST">
+
+                    <div class="search_box">
+
+                        <input
+                            class="input_box"
+                            type="text"
+                            name="movie"
+                            id="movie"
+                            placeholder="ENTER THE NAME OF THE MOVIE"
+                            autocomplete="off"
+                        >
+
+                        <button
+                            class="submition"
+                            type="submit"
+                            id="searchButton"
+                        >
+
+                            <img
+                                src="{{ url_for('static', filename='images/search.svg') }}"
+                                alt="Search"
+                            >
+
+                        </button>
+
+                    </div>
+
+                </form>
+
+
+                <p class="search-hint">
+                    Type the movie name with proper spacing
+                </p>
+
+
+                <!-- ERROR / MESSAGE -->
+
+                <div id="message">
+                    {% if message %}
+                        {{ message }}
+                    {% endif %}
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= FEATURES ================= -->
+
+        <section id="features" class="features">
+
+            <div class="section-title">
+
+                <p class="small-title">
+                    WHY INFOJOY
+                </p>
+
+                <h2>
+                    Everything You Need
+                </h2>
+
+                <p>
+                    A simple and clean movie search experience.
+                </p>
+
+            </div>
+
+
+            <div class="feature-grid">
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        🔎
+                    </div>
+
+                    <h3>
+                        Easy Search
+                    </h3>
+
+                    <p>
+                        Quickly search for movies using
+                        the movie name.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        🎞️
+                    </div>
+
+                    <h3>
+                        Quality Selection
+                    </h3>
+
+                    <p>
+                        Choose from the available movie
+                        qualities.
+                    </p>
+
+                </div>
+
+
+                <div class="feature-card">
+
+                    <div class="feature-icon">
+                        ℹ️
+                    </div>
+
+                    <h3>
+                        Movie Details
+                    </h3>
+
+                    <p>
+                        View useful information about the
+                        movie in one place.
+                    </p>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- ================= ABOUT ================= -->
+
+        <section id="about" class="about">
+
+            <div class="about-content">
+
+                <p class="small-title">
+                    ABOUT INFOJOY
+                </p>
+
+                <h2>
+                    Simple. Fast. Useful.
+                </h2>
+
+                <p>
+                    INFOJOY is designed to make finding movie
+                    information simple and convenient.
+                    Enter a movie name above to get started.
+                </p>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- ================= FOOTER ================= -->
+
+    <footer>
+
+        <div class="footer-logo">
+            INFOJOY
+        </div>
+
+        <p>
+            Movie information search made simple.
+        </p>
+
+        <p class="copyright">
+            © <span id="year"></span> INFOJOY
+        </p>
+
+
+    </footer>
+
+    <section id="about" class="about">
+
+    <div class="about-content">
+
+        <p class="small-title">
+            THE MEANING OF INFOJOY
+        </p>
+
+        <h2>
+            INFOJOY — Infinity of Joy
+        </h2>
+
+        <p>
+            INFOJOY stands for <strong>“Infinity of Joy.”</strong>
+            The idea is to create a simple place where discovering
+            movies and information feels enjoyable and effortless.
+        </p>
+
+        <div class="meaning-box">
+
+            <div>
+                <strong>INFO</strong>
+                <span>Information</span>
+            </div>
+
+            <div class="plus">
+                +
+            </div>
+
+            <div>
+                <strong>JOY</strong>
+                <span>Happiness & Enjoyment</span>
+            </div>
+
+            <div class="equals">
+                =
+            </div>
+
+            <div>
+                <strong>INFOJOY</strong>
+                <span>Infinity of Joy</span>
+            </div>
 
         </div>
 
-    </form>
+    </div>
 
-    <p>TYPE THE MOVIE NAME WITH PROPPER SPACING</p>
+</section>
 
-    <!-- Message will appear here -->
-    <p id="message">🤝{{ message }}</p>
 
+    <!-- ================= JAVASCRIPT ================= -->
 
     <script>
-        document.getElementById("movieForm").addEventListener("submit", function(event) {
 
-            let movie = document.getElementById("movie").value.trim();
-            let message = document.getElementById("message");
+        const movieForm =
+            document.getElementById("movieForm");
 
-            if (movie.length === 0) {
+        const movieInput =
+            document.getElementById("movie");
 
-                // Stop form from going to Flask
-                event.preventDefault();
+        const message =
+            document.getElementById("message");
 
-                // Change the text on the same page
-               message.innerHTML = `
-                    <img src="{{ url_for('static', filename='images/alert.svg') }}"
-                        alt="alert">
-                    ENTER THE MOVIE NAME
+        const searchButton =
+            document.getElementById("searchButton");
+
+
+        /*
+         * Automatically set current year
+         */
+
+        document.getElementById("year").textContent =
+            new Date().getFullYear();
+
+
+        /*
+         * Movie search validation
+         */
+
+        movieForm.addEventListener(
+            "submit",
+            function(event) {
+
+                const movie =
+                    movieInput.value.trim();
+
+
+                /*
+                 * Empty movie name
+                 */
+
+                if (movie.length === 0) {
+
+                    event.preventDefault();
+
+                    message.innerHTML = `
+                        <div class="error-message">
+
+                            <img
+                                src="{{ url_for('static', filename='images/alert.svg') }}"
+                                alt="Alert"
+                            >
+
+                            <span>
+                                ENTER THE MOVIE NAME
+                            </span>
+
+                        </div>
+                    `;
+
+                    movieInput.focus();
+
+                    return;
+                }
+
+
+                /*
+                 * Remove previous message
+                 */
+
+                message.innerHTML = "";
+
+
+                /*
+                 * Prevent double click
+                 */
+
+                searchButton.disabled = true;
+
+
+                /*
+                 * Show loading message
+                 */
+
+                message.innerHTML = `
+                    <div class="loading-message">
+                        <span class="loader"></span>
+                        SEARCHING FOR MOVIE...
+                    </div>
                 `;
 
             }
+        );
 
-        });
+
+        /*
+         * Remove error when user starts typing
+         */
+
+        movieInput.addEventListener(
+            "input",
+            function() {
+
+                if (movieInput.value.trim().length > 0) {
+
+                    message.innerHTML = "";
+
+                }
+
+            }
+        );
+
+
+        /*
+         * Enter key automatically submits
+         */
+
+        movieInput.addEventListener(
+            "keydown",
+            function(event) {
+
+                if (
+                    event.key === "Enter" &&
+                    movieInput.value.trim().length > 0
+                ) {
+
+                    movieForm.requestSubmit();
+
+                }
+
+            }
+        );
+
     </script>
 
 </body>
+
 </html>

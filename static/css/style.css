@@ -1,72 +1,536 @@
+/* =========================================================
+   INFOJOY
+   Infinity of Joy
+   Clean / Premium / Modern
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
 body {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    flex-direction: column;
     margin: 0;
     min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+
     overflow-x: hidden;
-    overflow-y: hidden;
+
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color: #ffffff;
 
     background:
         radial-gradient(
-            circle at top left,
-            #ffffff,
-            #bcb7b7,
-            #7e7d7d,
-            transparent 70%
+            circle at 15% 10%,
+            rgba(255, 255, 255, 0.20),
+            transparent 35%
         ),
         radial-gradient(
-            circle at bottom right,
-            #000000,
-            #121111,
-            #181818,
+            circle at 90% 85%,
+            rgba(255, 255, 255, 0.08),
             transparent 30%
         ),
-        #181818;
+        linear-gradient(
+            135deg,
+            #111111,
+            #1b1b1b 45%,
+            #080808
+        );
 }
+
+
+/* =========================================================
+   MAIN TITLE
+   ========================================================= */
+
+h1 {
+    margin: 75px 0 35px;
+
+    font-size: clamp(42px, 7vw, 72px);
+
+    font-weight: 800;
+
+    letter-spacing: 8px;
+
+    line-height: 1;
+
+    color: #ffffff;
+
+    text-align: center;
+
+    text-shadow:
+        0 5px 30px rgba(255, 255, 255, 0.08);
+}
+
+
+/* =========================================================
+   SEARCH BOX
+   ========================================================= */
 
 .search_box {
     position: relative;
-    width: 400px;
+
+    width: min(500px, calc(100vw - 40px));
+
+    margin-top: 5px;
 }
+
+
+/* Input */
 
 .input_box {
     width: 100%;
-    padding: 15px 50px 15px 15px;
-    box-sizing: border-box;
-    border: 2px solid #bbbbbb;
-    border-radius: 10px;
+
+    height: 58px;
+
+    padding: 0 65px 0 20px;
+
+    border: 1px solid rgba(255, 255, 255, 0.18);
+
+    border-radius: 14px;
+
+    outline: none;
+
+    background: rgba(255, 255, 255, 0.08);
+
+    color: #ffffff;
+
+    font-size: 14px;
+
+    letter-spacing: 0.5px;
+
+    backdrop-filter: blur(15px);
+
+    -webkit-backdrop-filter: blur(15px);
+
+    box-shadow:
+        0 10px 35px rgba(0, 0, 0, 0.25);
+
+    transition:
+        border-color 0.25s ease,
+        background 0.25s ease,
+        box-shadow 0.25s ease;
 }
+
+
+.input_box::placeholder {
+    color: rgba(255, 255, 255, 0.45);
+
+    letter-spacing: 1px;
+}
+
+
+.input_box:focus {
+    border-color: rgba(255, 255, 255, 0.45);
+
+    background: rgba(255, 255, 255, 0.11);
+
+    box-shadow:
+        0 0 0 4px rgba(255, 255, 255, 0.04),
+        0 15px 40px rgba(0, 0, 0, 0.3);
+}
+
+
+/* =========================================================
+   SEARCH BUTTON
+   ========================================================= */
 
 .submition {
     position: absolute;
-    right: 5px;
+
+    right: 7px;
     top: 50%;
+
     transform: translateY(-50%);
 
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
 
     border: none;
-    border-radius: 7px;
+
+    border-radius: 11px;
 
     background: #ffffff;
-    color: #000000;
 
-    font-size: 20px;
     cursor: pointer;
+
+    transition:
+        transform 0.2s ease,
+        box-shadow 0.2s ease,
+        background 0.2s ease;
 }
 
+
+.submition:hover {
+    transform: translateY(-50%) scale(1.05);
+
+    box-shadow:
+        0 8px 25px rgba(255, 255, 255, 0.18);
+}
+
+
+.submition:active {
+    transform: translateY(-50%) scale(0.96);
+}
+
+
 .submition img {
-    width: 25px;
-    height: 25px;
+    width: 22px;
+    height: 22px;
+
+    object-fit: contain;
+}
+
+
+/* =========================================================
+   SEARCH DESCRIPTION
+   ========================================================= */
+
+body > p:not(#message) {
+    margin-top: 18px;
+
+    max-width: 500px;
+
+    padding: 0 20px;
+
+    text-align: center;
+
+    font-size: 11px;
+
+    letter-spacing: 1.5px;
+
+    line-height: 1.7;
+
+    color: rgba(255, 255, 255, 0.38);
+
+    text-transform: uppercase;
+}
+
+
+/* =========================================================
+   MESSAGE
+   ========================================================= */
+
+#message {
+    min-height: 25px;
+
+    margin-top: 10px;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    gap: 6px;
+
+    font-size: 13px;
+
+    color: rgba(255, 255, 255, 0.7);
 }
 
 
 #message img {
-    width: 20px;
-    height: 20px;
-    vertical-align: middle;
-    margin-right: 5px;
+    width: 18px;
+    height: 18px;
+
+    object-fit: contain;
+}
+
+
+/* =========================================================
+   ABOUT SECTION
+   ========================================================= */
+
+.about {
+    width: 100%;
+
+    padding: 120px 20px 100px;
+
+    display: flex;
+
+    justify-content: center;
+}
+
+
+.about-content {
+    width: 100%;
+
+    max-width: 850px;
+
+    text-align: center;
+}
+
+
+/* Small title */
+
+.about-content .small-title {
+    margin: 0 0 18px;
+
+    font-size: 11px;
+
+    font-weight: 600;
+
+    letter-spacing: 5px;
+
+    text-transform: uppercase;
+
+    color: rgba(255, 255, 255, 0.45);
+}
+
+
+/* Main heading */
+
+.about-content h2 {
+    margin: 0;
+
+    font-size: clamp(38px, 7vw, 68px);
+
+    line-height: 1.05;
+
+    font-weight: 800;
+
+    letter-spacing: -2.5px;
+
+    color: #ffffff;
+}
+
+
+/* Infinity symbol */
+
+.about-content h2::after {
+    content: "∞";
+
+    display: block;
+
+    margin-top: 15px;
+
+    font-size: 30px;
+
+    font-weight: 300;
+
+    color: rgba(255, 255, 255, 0.25);
+}
+
+
+/* Description */
+
+.about-content > p:not(.small-title) {
+    max-width: 620px;
+
+    margin: 30px auto 0;
+
+    font-size: 15px;
+
+    line-height: 1.9;
+
+    color: rgba(255, 255, 255, 0.5);
+}
+
+
+/* =========================================================
+   INFOJOY MEANING
+   ========================================================= */
+
+.meaning-box {
+    margin: 55px auto 0;
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    gap: 22px;
+}
+
+
+/* INFO / JOY / INFOJOY */
+
+.meaning-box > div:not(.plus):not(.equals) {
+    min-width: 125px;
+
+    padding: 18px 22px;
+
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+
+    transition:
+        transform 0.3s ease,
+        border-color 0.3s ease;
+}
+
+
+.meaning-box strong {
+    display: block;
+
+    font-size: 20px;
+
+    font-weight: 700;
+
+    letter-spacing: 2px;
+
+    color: #ffffff;
+}
+
+
+.meaning-box span {
+    display: block;
+
+    margin-top: 7px;
+
+    font-size: 11px;
+
+    letter-spacing: 1px;
+
+    color: rgba(255, 255, 255, 0.42);
+}
+
+
+/* Plus / equals */
+
+.meaning-box .plus,
+.meaning-box .equals {
+    font-size: 20px;
+
+    font-weight: 300;
+
+    color: rgba(255, 255, 255, 0.25);
+}
+
+
+/* INFOJOY result */
+
+.meaning-box > div:last-child {
+    border-bottom-color: rgba(255, 255, 255, 0.35);
+}
+
+
+.meaning-box > div:last-child strong {
+    font-size: 22px;
+}
+
+
+/* Hover */
+
+.meaning-box > div:not(.plus):not(.equals):hover {
+    transform: translateY(-5px);
+
+    border-bottom-color: rgba(255, 255, 255, 0.5);
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 650px) {
+
+    h1 {
+        margin-top: 55px;
+
+        font-size: 42px;
+
+        letter-spacing: 5px;
+    }
+
+
+    .search_box {
+        width: calc(100vw - 35px);
+    }
+
+
+    .input_box {
+        height: 55px;
+
+        font-size: 12px;
+
+        padding-left: 17px;
+    }
+
+
+    .submition {
+        width: 41px;
+        height: 41px;
+
+        right: 7px;
+    }
+
+
+    .about {
+        padding: 80px 20px;
+    }
+
+
+    .about-content h2 {
+        font-size: 42px;
+
+        letter-spacing: -1.5px;
+    }
+
+
+    .about-content > p:not(.small-title) {
+        font-size: 14px;
+
+        line-height: 1.8;
+    }
+
+
+    .meaning-box {
+        flex-direction: column;
+
+        gap: 12px;
+
+        margin-top: 40px;
+    }
+
+
+    .meaning-box > div:not(.plus):not(.equals) {
+        width: 220px;
+    }
+
+
+    .meaning-box .plus,
+    .meaning-box .equals {
+        transform: rotate(90deg);
+    }
+}
+
+
+/* =========================================================
+   VERY SMALL SCREEN
+   ========================================================= */
+
+@media (max-width: 380px) {
+
+    h1 {
+        font-size: 35px;
+
+        letter-spacing: 4px;
+    }
+
+
+    .input_box {
+        font-size: 11px;
+    }
+
+
+    .about-content h2 {
+        font-size: 36px;
+    }
 }
