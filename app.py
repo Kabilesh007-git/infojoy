@@ -13,13 +13,7 @@ def home():
 def downdload():
     data=request.form["movie"]
 
-    if len(data)==0:
-        return "<h1>enter the name</h1> "
-
-    with open("moviename.txt","w")as txt:
-        txt.write(data)
-
-    return render_template("index1.html")
+turn render_template("index1.html")
 
 
 
