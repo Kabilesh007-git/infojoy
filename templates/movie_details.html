@@ -5,48 +5,66 @@
 
     <meta charset="UTF-8">
 
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <title>INFOJOY {{ movie }}</title>
+    <title>
+        INFOJOY {{ movie }}
+    </title>
 
-    <link rel="stylesheet"
-          href="{{ url_for('static', filename='css/style3.css') }}">
+    <link
+        rel="stylesheet"
+        href="{{ url_for(
+            'static',
+            filename='css/style3.css'
+        ) }}"
+    >
 
-    <link rel="icon"
-          type="image/svg+xml"
-          href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link
+        rel="icon"
+        type="image/svg+xml"
+        href="{{ url_for(
+            'static',
+            filename='images/favicon.svg'
+        ) }}"
+    >
 
 </head>
 
 
 <body>
 
-
 <div class="movie-card">
 
 
-    <!-- ================================================= -->
-    <!-- BACKGROUND -->
-    <!-- ================================================= -->
+    <!-- =====================================================
+         BACKGROUND
+         ===================================================== -->
 
-    <div class="background"
-         style="background-image: url('{{ bg_poster }}');">
+    <div
+        class="background"
+        style="
+            background-image:
+            url('{{ bg_poster }}');
+        "
+    >
     </div>
 
     <div class="overlay"></div>
 
 
-    <!-- ================================================= -->
-    <!-- MAIN CONTENT -->
-    <!-- ================================================= -->
+    <!-- =====================================================
+         CONTENT
+         ===================================================== -->
 
     <div class="content">
 
 
-        <!-- ================================================= -->
-        <!-- POSTER -->
-        <!-- ================================================= -->
+        <!-- =================================================
+             POSTER
+             ================================================= -->
 
         <div class="poster-box">
 
@@ -54,29 +72,33 @@
                 src="{{ poster }}"
                 class="poster"
                 alt="{{ movie }} poster"
-                onerror="this.style.display='none';"
+                onerror="
+                    this.style.display='none';
+                "
             >
 
         </div>
 
 
-        <!-- ================================================= -->
-        <!-- MOVIE INFORMATION -->
-        <!-- ================================================= -->
+        <!-- =================================================
+             MOVIE INFO
+             ================================================= -->
 
         <div class="movie-info">
 
 
-            <!-- MOVIE TITLE -->
+            <!-- =================================================
+                 TITLE
+                 ================================================= -->
 
             <h1>
                 {{ movie }}
             </h1>
 
 
-            <!-- ================================================= -->
-            <!-- DETAILS -->
-            <!-- ================================================= -->
+            <!-- =================================================
+                 DETAILS
+                 ================================================= -->
 
             <div class="details">
 
@@ -99,9 +121,9 @@
             </div>
 
 
-            <!-- ================================================= -->
-            <!-- SELECTED QUALITY -->
-            <!-- ================================================= -->
+            <!-- =================================================
+                 QUALITY
+                 ================================================= -->
 
             <div class="quality">
 
@@ -116,60 +138,60 @@
             </div>
 
 
-            <!-- ================================================= -->
-            <!-- DOWNLOAD BUTTON -->
-            <!-- ================================================= -->
+            <!-- =================================================
+                 DOWNLOAD BUTTON
+                 ================================================= -->
 
             <button
                 class="watch-btn"
                 id="downloadBtn"
-                onclick="startDownload()">
-
+                onclick="startDownload()"
+            >
                 DOWNLOAD
-
             </button>
 
 
-            <!-- ================================================= -->
-            <!-- DOWNLOAD STATUS -->
-            <!-- ================================================= -->
+            <!-- =================================================
+                 DOWNLOAD STATUS
+                 ================================================= -->
 
             <div
                 id="downloadStatus"
                 class="download-status"
-                style="display:none;">
+                style="display:none;"
+            >
 
 
-                <!-- ================================================= -->
-                <!-- TITLE -->
-                <!-- ================================================= -->
+                <!-- =================================================
+                     TITLE
+                     ================================================= -->
 
                 <div
                     class="download-title"
-                    id="downloadTitle">
-
+                    id="downloadTitle"
+                >
                     Downloading...
-
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- PROGRESS BAR -->
-                <!-- ================================================= -->
+                <!-- =================================================
+                     PROGRESS BAR
+                     ================================================= -->
 
                 <div class="progress-box">
 
                     <div
                         id="progressBar"
-                        class="progress-bar">
+                        class="progress-bar"
+                    >
                     </div>
 
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- PROGRESS + SPEED -->
-                <!-- ================================================= -->
+                <!-- =================================================
+                     PROGRESS + SPEED
+                     ================================================= -->
 
                 <div class="download-info">
 
@@ -197,9 +219,9 @@
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- TIME + ETA -->
-                <!-- ================================================= -->
+                <!-- =================================================
+                     TIME + ETA
+                     ================================================= -->
 
                 <div class="download-info">
 
@@ -227,9 +249,9 @@
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- DOWNLOADED + TOTAL -->
-                <!-- ================================================= -->
+                <!-- =================================================
+                     DOWNLOADED + TOTAL
+                     ================================================= -->
 
                 <div class="download-info">
 
@@ -257,26 +279,24 @@
                 </div>
 
 
-                <!-- ================================================= -->
-                <!-- CANCEL BUTTON -->
-                <!-- ================================================= -->
+                <!-- =================================================
+                     CANCEL
+                     ================================================= -->
 
                 <div class="download-buttons">
 
                     <button
                         id="cancelBtn"
                         class="cancel-btn"
-                        onclick="cancelDownload()">
-
+                        onclick="cancelDownload()"
+                    >
                         CANCEL DOWNLOAD
-
                     </button>
 
                 </div>
 
 
             </div>
-
 
         </div>
 
@@ -285,15 +305,17 @@
 </div>
 
 
-
-<!-- ========================================================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================================================= -->
-
 <script>
 
+
+/* ============================================================
+   VARIABLES
+   ============================================================ */
+
 let checkingDownload = false;
+
 let cancellingDownload = false;
+
 let downloadSession = 0;
 
 
@@ -305,9 +327,13 @@ function formatSize(mb) {
 
     mb = Number(mb);
 
-    if (!Number.isFinite(mb) || mb < 0) {
+    if (
+        !Number.isFinite(mb)
+        || mb < 0
+    ) {
 
         return "Unknown";
+
     }
 
     if (mb >= 1000) {
@@ -315,14 +341,18 @@ function formatSize(mb) {
         return (
             mb / 1000
         ).toFixed(2) + " GB";
+
     }
 
-    return mb.toFixed(2) + " MB";
+    return (
+        mb.toFixed(2)
+        + " MB"
+    );
 }
 
 
 /* ============================================================
-   ELEMENTS
+   GET ELEMENTS
    ============================================================ */
 
 function getDownloadElements() {
@@ -383,7 +413,9 @@ function getDownloadElements() {
             document.getElementById(
                 "total"
             )
+
     };
+
 }
 
 
@@ -396,47 +428,62 @@ function resetDownloadUI() {
     const e =
         getDownloadElements();
 
+
     e.status.style.display =
         "block";
+
 
     e.button.disabled =
         true;
 
+
     e.button.innerText =
         "DOWNLOADING...";
+
 
     e.cancel.style.display =
         "inline-flex";
 
+
     e.cancel.disabled =
         false;
+
 
     e.cancel.innerText =
         "CANCEL DOWNLOAD";
 
+
     e.title.innerText =
         "Connecting to download server...";
+
 
     e.progress.style.width =
         "0%";
 
+
     e.percentage.innerText =
         "0%";
+
 
     e.speed.innerText =
         "0.00 MB/s";
 
+
     e.elapsed.innerText =
         "00:00";
+
 
     e.eta.innerText =
         "00:00";
 
+
     e.downloaded.innerText =
         "0.00 MB";
 
+
     e.total.innerText =
         "Unknown";
+
 }
 
 
@@ -449,10 +496,6 @@ function updateDownloadCard(data) {
     const e =
         getDownloadElements();
 
-
-    /* ========================================================
-       MOVIE NAME
-       ======================================================== */
 
     const movieName =
         data.movie_name ||
@@ -468,8 +511,8 @@ function updateDownloadCard(data) {
     ) {
 
         e.title.innerText =
-            "Downloading: " +
-            movieName;
+            "Downloading: "
+            + movieName;
 
     }
 
@@ -478,8 +521,8 @@ function updateDownloadCard(data) {
     ) {
 
         e.title.innerText =
-            "Starting: " +
-            movieName;
+            "Starting: "
+            + movieName;
 
     }
 
@@ -488,8 +531,8 @@ function updateDownloadCard(data) {
     ) {
 
         e.title.innerText =
-            "Cancelling: " +
-            movieName;
+            "Cancelling: "
+            + movieName;
 
     }
 
@@ -498,8 +541,8 @@ function updateDownloadCard(data) {
     ) {
 
         e.title.innerText =
-            "Download Completed: " +
-            movieName;
+            "Download Completed: "
+            + movieName;
 
     }
 
@@ -508,8 +551,8 @@ function updateDownloadCard(data) {
     ) {
 
         e.title.innerText =
-            "Download Cancelled: " +
-            movieName;
+            "Download Cancelled: "
+            + movieName;
 
     }
 
@@ -519,6 +562,7 @@ function updateDownloadCard(data) {
 
         e.title.innerText =
             data.message;
+
     }
 
 
@@ -527,12 +571,21 @@ function updateDownloadCard(data) {
        ======================================================== */
 
     let percentage =
-        Number(data.percentage);
+        Number(
+            data.percentage
+        );
 
-    if (!Number.isFinite(percentage)) {
+
+    if (
+        !Number.isFinite(
+            percentage
+        )
+    ) {
 
         percentage = 0;
+
     }
+
 
     percentage =
         Math.max(
@@ -543,8 +596,11 @@ function updateDownloadCard(data) {
             )
         );
 
+
     e.percentage.innerText =
-        percentage.toFixed(2) + "%";
+        percentage.toFixed(2)
+        + "%";
+
 
     e.progress.style.width =
         percentage + "%";
@@ -555,20 +611,29 @@ function updateDownloadCard(data) {
        ======================================================== */
 
     let speed =
-        Number(data.speed);
+        Number(
+            data.speed
+        );
 
-    if (!Number.isFinite(speed)) {
+
+    if (
+        !Number.isFinite(
+            speed
+        )
+    ) {
 
         speed = 0;
+
     }
 
+
     e.speed.innerText =
-        speed.toFixed(2) +
-        " MB/s";
+        speed.toFixed(2)
+        + " MB/s";
 
 
     /* ========================================================
-       ELAPSED
+       TIME
        ======================================================== */
 
     e.elapsed.innerText =
@@ -590,20 +655,29 @@ function updateDownloadCard(data) {
        ======================================================== */
 
     let downloaded =
-        Number(data.downloaded);
+        Number(
+            data.downloaded
+        );
+
 
     if (
-        Number.isFinite(downloaded)
+        Number.isFinite(
+            downloaded
+        )
     ) {
 
         e.downloaded.innerText =
-            formatSize(downloaded);
+            formatSize(
+                downloaded
+            );
 
     }
+
     else {
 
         e.downloaded.innerText =
             "0.00 MB";
+
     }
 
 
@@ -612,43 +686,28 @@ function updateDownloadCard(data) {
        ======================================================== */
 
     let total =
-        Number(data.total);
+        Number(
+            data.total
+        );
+
 
     if (
-        Number.isFinite(total) &&
-        total > 0
+        Number.isFinite(total)
+        && total > 0
     ) {
 
         e.total.innerText =
-            formatSize(total);
+            formatSize(
+                total
+            );
 
     }
+
     else {
 
         e.total.innerText =
             "Unknown";
-    }
 
-
-    /* ========================================================
-       STARTING
-       ======================================================== */
-
-    if (
-        data.status === "starting"
-    ) {
-
-        e.button.disabled =
-            true;
-
-        e.button.innerText =
-            "DOWNLOADING...";
-
-        e.cancel.style.display =
-            "inline-flex";
-
-        e.cancel.disabled =
-            false;
     }
 
 
@@ -663,20 +722,22 @@ function updateDownloadCard(data) {
         checkingDownload =
             true;
 
+
         e.button.disabled =
             true;
+
 
         e.button.innerText =
             "DOWNLOADING...";
 
+
         e.cancel.style.display =
             "inline-flex";
+
 
         e.cancel.disabled =
             false;
 
-        e.cancel.innerText =
-            "CANCEL DOWNLOAD";
     }
 
 
@@ -691,8 +752,10 @@ function updateDownloadCard(data) {
         e.cancel.disabled =
             true;
 
+
         e.cancel.innerText =
             "CANCELLING...";
+
     }
 
 
@@ -707,17 +770,22 @@ function updateDownloadCard(data) {
         checkingDownload =
             false;
 
+
         cancellingDownload =
             false;
+
 
         e.button.disabled =
             false;
 
+
         e.button.innerText =
             "DOWNLOAD";
 
+
         e.cancel.style.display =
             "none";
+
     }
 
 
@@ -732,26 +800,34 @@ function updateDownloadCard(data) {
         checkingDownload =
             false;
 
+
         cancellingDownload =
             false;
+
 
         e.percentage.innerText =
             "100%";
 
+
         e.progress.style.width =
             "100%";
+
 
         e.eta.innerText =
             "00:00";
 
+
         e.button.innerText =
             "DOWNLOADED";
+
 
         e.button.disabled =
             true;
 
+
         e.cancel.style.display =
             "none";
+
     }
 
 
@@ -766,25 +842,33 @@ function updateDownloadCard(data) {
         checkingDownload =
             false;
 
+
         cancellingDownload =
             false;
+
 
         e.title.innerText =
             "Download Failed";
 
+
         e.button.disabled =
             false;
+
 
         e.button.innerText =
             "DOWNLOAD";
 
+
         e.cancel.style.display =
             "none";
+
 
         console.error(
             data.error
         );
+
     }
+
 }
 
 
@@ -794,26 +878,38 @@ function updateDownloadCard(data) {
 
 function startDownload() {
 
-    if (checkingDownload) {
+    if (
+        checkingDownload
+    ) {
 
         return;
+
     }
 
-    if (cancellingDownload) {
+
+    if (
+        cancellingDownload
+    ) {
 
         return;
+
     }
+
 
     downloadSession++;
+
 
     const session =
         downloadSession;
 
+
     checkingDownload =
         true;
 
+
     cancellingDownload =
         false;
+
 
     resetDownloadUI();
 
@@ -825,72 +921,202 @@ function startDownload() {
         }
     )
 
-    .then(response => {
+    .then(
+        response => {
 
-        return response.json();
-    })
+            if (
+                !response.ok
+            ) {
 
-    .then(data => {
+                throw new Error(
+                    "HTTP "
+                    + response.status
+                );
 
-        console.log(
-            "START:",
-            data
-        );
+            }
 
-        if (!data.success) {
+            return response.json();
+
+        }
+    )
+
+    .then(
+        data => {
+
+            console.log(
+                "START:",
+                data
+            );
+
+
+            /* ==================================================
+               FAILED
+               ================================================== */
+
+            if (
+                !data.success
+            ) {
+
+                checkingDownload =
+                    false;
+
+
+                const e =
+                    getDownloadElements();
+
+
+                e.button.disabled =
+                    false;
+
+
+                e.button.innerText =
+                    "DOWNLOAD";
+
+
+                e.cancel.style.display =
+                    "none";
+
+
+                e.title.innerText =
+                    data.error ||
+                    "Download could not start";
+
+
+                return;
+
+            }
+
+
+            /* ==================================================
+               VERCEL DIRECT DOWNLOAD
+               ================================================== */
+
+            if (
+                data.direct === true
+                &&
+                data.download_url
+            ) {
+
+                console.log(
+                    "DIRECT DOWNLOAD:",
+                    data.download_url
+                );
+
+
+                checkingDownload =
+                    false;
+
+
+                const e =
+                    getDownloadElements();
+
+
+                e.button.disabled =
+                    false;
+
+
+                e.button.innerText =
+                    "DOWNLOAD";
+
+
+                e.cancel.style.display =
+                    "none";
+
+
+                e.title.innerText =
+                    "Download Started";
+
+
+                e.progress.style.width =
+                    "100%";
+
+
+                e.percentage.innerText =
+                    "Direct";
+
+
+                e.speed.innerText =
+                    "Browser";
+
+
+                e.elapsed.innerText =
+                    "—";
+
+
+                e.eta.innerText =
+                    "—";
+
+
+                e.downloaded.innerText =
+                    "Browser";
+
+
+                e.total.innerText =
+                    "Direct";
+
+
+                /*
+                 * Open the final URL.
+                 *
+                 * The browser performs the actual
+                 * file transfer instead of Vercel.
+                 */
+
+                window.location.href =
+                    data.download_url;
+
+
+                return;
+
+            }
+
+
+            /* ==================================================
+               LOCALHOST
+               ================================================== */
+
+            checkDownloadStatus(
+                session
+            );
+
+        }
+    )
+
+    .catch(
+        error => {
+
+            console.error(
+                "START DOWNLOAD ERROR:",
+                error
+            );
+
 
             checkingDownload =
                 false;
 
+
             const e =
                 getDownloadElements();
+
 
             e.button.disabled =
                 false;
 
+
             e.button.innerText =
                 "DOWNLOAD";
+
 
             e.cancel.style.display =
                 "none";
 
+
             e.title.innerText =
-                data.error ||
-                "Download could not start";
+                "Download Failed";
 
-            return;
         }
+    );
 
-        checkDownloadStatus(
-            session
-        );
-
-    })
-
-    .catch(error => {
-
-        console.error(
-            error
-        );
-
-        checkingDownload =
-            false;
-
-        const e =
-            getDownloadElements();
-
-        e.button.disabled =
-            false;
-
-        e.button.innerText =
-            "DOWNLOAD";
-
-        e.cancel.style.display =
-            "none";
-
-        e.title.innerText =
-            "Download Failed";
-    });
 }
 
 
@@ -905,23 +1131,30 @@ function cancelDownload() {
     ) {
 
         return;
+
     }
+
 
     if (
         !checkingDownload
     ) {
 
         return;
+
     }
+
 
     cancellingDownload =
         true;
 
+
     const e =
         getDownloadElements();
 
+
     e.cancel.disabled =
         true;
+
 
     e.cancel.innerText =
         "CANCELLING...";
@@ -934,53 +1167,73 @@ function cancelDownload() {
         }
     )
 
-    .then(response => {
+    .then(
+        response => {
 
-        return response.json();
-    })
+            return response.json();
 
-    .then(data => {
+        }
+    )
 
-        console.log(
-            "CANCEL:",
-            data
-        );
+    .then(
+        data => {
 
-        if (!data.success) {
+            console.log(
+                "CANCEL:",
+                data
+            );
+
+
+            if (
+                !data.success
+            ) {
+
+                cancellingDownload =
+                    false;
+
+
+                e.cancel.disabled =
+                    false;
+
+
+                e.cancel.innerText =
+                    "CANCEL DOWNLOAD";
+
+
+                return;
+
+            }
+
+
+            checkDownloadStatus(
+                downloadSession
+            );
+
+        }
+    )
+
+    .catch(
+        error => {
+
+            console.error(
+                error
+            );
+
 
             cancellingDownload =
                 false;
 
+
             e.cancel.disabled =
                 false;
+
 
             e.cancel.innerText =
                 "CANCEL DOWNLOAD";
 
-            return;
         }
+    );
 
-        checkDownloadStatus(
-            downloadSession
-        );
-
-    })
-
-    .catch(error => {
-
-        console.error(
-            error
-        );
-
-        cancellingDownload =
-            false;
-
-        e.cancel.disabled =
-            false;
-
-        e.cancel.innerText =
-            "CANCEL DOWNLOAD";
-    });
 }
 
 
@@ -998,14 +1251,18 @@ function checkDownloadStatus(
     ) {
 
         return;
+
     }
 
+
     if (
-        !checkingDownload &&
+        !checkingDownload
+        &&
         !cancellingDownload
     ) {
 
         return;
+
     }
 
 
@@ -1017,86 +1274,110 @@ function checkDownloadStatus(
         }
     )
 
-    .then(response => {
+    .then(
+        response => {
 
-        return response.json();
-    })
+            if (
+                !response.ok
+            ) {
 
-    .then(data => {
+                throw new Error(
+                    "HTTP "
+                    + response.status
+                );
 
-        console.log(
-            "DOWNLOAD STATUS:",
-            data
-        );
+            }
 
-        if (
-            session !==
-            downloadSession
-        ) {
+            return response.json();
 
-            return;
         }
+    )
 
-        updateDownloadCard(
-            data
-        );
+    .then(
+        data => {
 
-
-        /* ====================================================
-           CONTINUE
-           ==================================================== */
-
-        if (
-            data.running === true ||
-            data.status === "starting" ||
-            data.status === "downloading" ||
-            data.status === "cancelling"
-        ) {
-
-            setTimeout(
-                function () {
-
-                    checkDownloadStatus(
-                        session
-                    );
-
-                },
-                500
+            console.log(
+                "DOWNLOAD STATUS:",
+                data
             );
-        }
 
-    })
 
-    .catch(error => {
+            if (
+                session !==
+                downloadSession
+            ) {
 
-        console.error(
-            "STATUS ERROR:",
-            error
-        );
+                return;
 
-        if (
-            session ===
-            downloadSession
-        ) {
+            }
 
-            setTimeout(
-                function () {
 
-                    checkDownloadStatus(
-                        session
-                    );
-
-                },
-                1000
+            updateDownloadCard(
+                data
             );
+
+
+            if (
+                data.running === true
+                ||
+                data.status === "starting"
+                ||
+                data.status === "downloading"
+                ||
+                data.status === "cancelling"
+            ) {
+
+                setTimeout(
+                    function () {
+
+                        checkDownloadStatus(
+                            session
+                        );
+
+                    },
+                    500
+                );
+
+            }
+
         }
-    });
+    )
+
+    .catch(
+        error => {
+
+            console.error(
+                "STATUS ERROR:",
+                error
+            );
+
+
+            if (
+                session ===
+                downloadSession
+            ) {
+
+                setTimeout(
+                    function () {
+
+                        checkDownloadStatus(
+                            session
+                        );
+
+                    },
+                    1000
+                );
+
+            }
+
+        }
+    );
+
 }
 
 
 /* ============================================================
-   IMPORTANT:
-   CHECK BACKEND WHEN PAGE OPENS
+   PAGE LOAD
    ============================================================ */
 
 window.addEventListener(
@@ -1110,58 +1391,67 @@ window.addEventListener(
             }
         )
 
-        .then(response => {
+        .then(
+            response => {
 
-            return response.json();
-        })
+                return response.json();
 
-        .then(data => {
+            }
+        )
 
-            console.log(
-                "BACKEND DOWNLOAD:",
-                data
-            );
+        .then(
+            data => {
 
-            /*
-             If another movie is already
-             downloading in Flask,
-             immediately show it.
-            */
-
-            if (
-                data.running === true
-            ) {
-
-                downloadSession++;
-
-                checkingDownload =
-                    true;
-
-                resetDownloadUI();
-
-                updateDownloadCard(
+                console.log(
+                    "BACKEND DOWNLOAD:",
                     data
                 );
 
-                checkDownloadStatus(
-                    downloadSession
-                );
+
+                /*
+                 * Only useful for localhost.
+                 */
+
+                if (
+                    data.running === true
+                ) {
+
+                    downloadSession++;
+
+                    checkingDownload =
+                        true;
+
+                    resetDownloadUI();
+
+                    updateDownloadCard(
+                        data
+                    );
+
+                    checkDownloadStatus(
+                        downloadSession
+                    );
+
+                }
+
             }
+        )
 
-        })
+        .catch(
+            error => {
 
-        .catch(error => {
+                console.error(
+                    "Initial status error:",
+                    error
+                );
 
-            console.error(
-                "Initial status error:",
-                error
-            );
-        });
+            }
+        );
+
     }
 );
 
-</script>
 
+</script>
 
 </body>
 

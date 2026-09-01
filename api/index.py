@@ -2,41 +2,49 @@ import os
 import sys
 import traceback
 
+from flask import Flask, render_template, request, jsonify
+from threading import Thread, Lock
+
+from processing_unit import rg
+from downloader import MovieDownloader
+
+
 # ============================================================
 # PROJECT ROOT
 # ============================================================
 
 BASE_DIR = os.path.dirname(
-    os.path.dirname(
-        os.path.abspath(__file__)
-    )
+    os.path.abspath(__file__)
 )
 
-# Allow Python to find packages.py, processing_unit.py, etc.
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 
 # ============================================================
-# IMPORTS
-# ============================================================
-
-from flask import Flask, render_template, request, jsonify
-
-from processing_unit import rg
-from downloader import MovieDownloader
-
-from threading import Thread, Lock
-
-
-# ============================================================
-# FLASK APP
+# FLASK
 # ============================================================
 
 app = Flask(
     __name__,
-    template_folder=os.path.join(BASE_DIR, "templates"),
-    static_folder=os.path.join(BASE_DIR, "static")
+    template_folder=os.path.join(
+        BASE_DIR,
+        "templates"
+    ),
+    static_folder=os.path.join(
+        BASE_DIR,
+        "static"
+    )
+)
+
+
+# ============================================================
+# ENVIRONMENT
+# ============================================================
+
+IS_VERCEL = (
+    os.getenv("VERCEL") == "1"
+    or os.getenv("VERCEL_ENV") is not None
 )
 
 
@@ -56,25 +64,35 @@ download_lock = Lock()
 # ============================================================
 
 download_status = {
+
     "status": "idle",
+
     "running": False,
+
     "completed": False,
+
     "cancelled": False,
+
     "cancel_requested": False,
+
     "error": None,
 
     "percentage": 0,
 
     "downloaded": 0,
+
     "total": 0,
 
     "speed": 0,
 
     "eta": "00:00",
+
     "elapsed": "00:00",
 
     "filename": "",
+
     "message": ""
+
 }
 
 
@@ -115,6 +133,7 @@ def reset_download_status():
             "filename": "",
 
             "message": ""
+
         })
 
 
@@ -125,7 +144,9 @@ def reset_download_status():
 @app.route("/")
 def home():
 
-    return render_template("index.html")
+    return render_template(
+        "index.html"
+    )
 
 
 # ============================================================
@@ -143,9 +164,15 @@ def downdload_process(movie):
         print("MOVIE PROCESSING")
         print("=" * 60)
 
-        print("Movie:", movie)
+        print(
+            "Movie:",
+            movie
+        )
 
-        data = rg(movie, 360)
+        data = rg(
+            movie,
+            360
+        )
 
         data.stage1()
 
@@ -153,7 +180,13 @@ def downdload_process(movie):
 
             current_data = data
 
-            if hasattr(data, "count") and data.count:
+            if (
+                hasattr(
+                    data,
+                    "count"
+                )
+                and data.count
+            ):
 
                 base_data[:] = [
                     item
@@ -165,10 +198,14 @@ def downdload_process(movie):
 
                 base_data.clear()
 
-        print("QUALITIES:")
-        print(base_data)
+        print(
+            "QUALITIES:",
+            base_data
+        )
 
-        print("Movie processing completed")
+        print(
+            "Movie processing completed"
+        )
 
         print("=" * 60)
 
@@ -179,8 +216,15 @@ def downdload_process(movie):
         print("MOVIE PROCESSING ERROR")
         print("=" * 60)
 
-        print("Movie:", movie)
-        print("Error:", e)
+        print(
+            "Movie:",
+            movie
+        )
+
+        print(
+            "Error:",
+            e
+        )
 
         traceback.print_exc()
 
@@ -196,7 +240,10 @@ def downdload_process(movie):
 # SEARCH MOVIE
 # ============================================================
 
-@app.route("/downdload", methods=["POST"])
+@app.route(
+    "/downdload",
+    methods=["POST"]
+)
 def download():
 
     global current_data
@@ -218,7 +265,10 @@ def download():
     print("SEARCH REQUEST")
     print("=" * 60)
 
-    print("Movie:", movie)
+    print(
+        "Movie:",
+        movie
+    )
 
     with data_lock:
 
@@ -227,20 +277,30 @@ def download():
 
     reset_download_status()
 
+    # ========================================================
+    # SEARCH
+    # ========================================================
+
     thread = Thread(
         target=downdload_process,
-        args=(movie,),
-        daemon=True
+        args=(movie,)
     )
 
     thread.start()
 
     thread.join()
 
+    # ========================================================
+    # GET RESULT
+    # ========================================================
+
     with data_lock:
 
         data = current_data
-        counts = list(base_data)
+
+        counts = list(
+            base_data
+        )
 
     if data is None:
 
@@ -249,8 +309,10 @@ def download():
         <a href="/">Go Back</a>
         """
 
-    print("AVAILABLE QUALITIES:")
-    print(counts)
+    print(
+        "AVAILABLE QUALITIES:",
+        counts
+    )
 
     print("=" * 60)
 
@@ -265,7 +327,10 @@ def download():
 # SELECT QUALITY
 # ============================================================
 
-@app.route("/select_quality", methods=["POST"])
+@app.route(
+    "/select_quality",
+    methods=["POST"]
+)
 def select_quality():
 
     global current_data
@@ -285,8 +350,19 @@ def select_quality():
     print("QUALITY SELECTION")
     print("=" * 60)
 
-    print("Movie:", movie)
-    print("Quality:", quality)
+    print(
+        "Movie:",
+        movie
+    )
+
+    print(
+        "Quality:",
+        quality
+    )
+
+    # ========================================================
+    # VALIDATION
+    # ========================================================
 
     if not movie:
 
@@ -302,6 +378,10 @@ def select_quality():
             "error": "Quality missing"
         }), 400
 
+    # ========================================================
+    # GET MOVIE DATA
+    # ========================================================
+
     with data_lock:
 
         data = current_data
@@ -314,6 +394,10 @@ def select_quality():
         }), 404
 
     reset_download_status()
+
+    # ========================================================
+    # PROCESS QUALITY
+    # ========================================================
 
     try:
 
@@ -337,7 +421,10 @@ def select_quality():
         print("CONTINUE PROCESS ERROR")
         print("=" * 60)
 
-        print("Error:", e)
+        print(
+            "Error:",
+            e
+        )
 
         traceback.print_exc()
 
@@ -347,6 +434,10 @@ def select_quality():
             "success": False,
             "error": str(e)
         }), 500
+
+    # ========================================================
+    # DATA
+    # ========================================================
 
     poster = getattr(
         data,
@@ -374,22 +465,49 @@ def select_quality():
 
     print()
     print("--------------------------------")
-    print("Final Link:", final_link)
-    print("Poster:", poster)
-    print("Background:", bg_poster)
-    print("Details:", details)
+    print(
+        "Final Link:",
+        final_link
+    )
+    print(
+        "Poster:",
+        poster
+    )
+    print(
+        "Background:",
+        bg_poster
+    )
+    print(
+        "Details:",
+        details
+    )
     print("--------------------------------")
+
+    # ========================================================
+    # CHECK LINK
+    # ========================================================
 
     if not final_link:
 
         return jsonify({
             "success": False,
-            "error": "Final download link was not generated"
+            "error": (
+                "Final download link "
+                "was not generated"
+            )
         }), 500
+
+    # ========================================================
+    # SAVE DATA
+    # ========================================================
 
     with data_lock:
 
         current_data = data
+
+    # ========================================================
+    # RESPONSE
+    # ========================================================
 
     return jsonify({
 
@@ -408,6 +526,7 @@ def select_quality():
         "link": final_link,
 
         "next": "/movie_details"
+
     })
 
 
@@ -415,7 +534,9 @@ def select_quality():
 # MOVIE DETAILS
 # ============================================================
 
-@app.route("/movie_details")
+@app.route(
+    "/movie_details"
+)
 def movie_details():
 
     with data_lock:
@@ -477,11 +598,12 @@ def movie_details():
         quality=quality,
 
         link=final_link
+
     )
 
 
 # ============================================================
-# RUN DOWNLOAD
+# LOCAL DOWNLOAD
 # ============================================================
 
 def run_download():
@@ -492,7 +614,7 @@ def run_download():
 
         print()
         print("=" * 60)
-        print("DOWNLOAD STARTED")
+        print("LOCAL DOWNLOAD STARTED")
         print("=" * 60)
 
         with data_lock:
@@ -517,8 +639,10 @@ def run_download():
                 "Final download link not found"
             )
 
-        print("Final link:")
-        print(final_link)
+        print(
+            "Final link:",
+            final_link
+        )
 
         downloader = MovieDownloader(
             data
@@ -531,7 +655,9 @@ def run_download():
 
         with download_lock:
 
-            if download_status["cancel_requested"]:
+            if download_status[
+                "cancel_requested"
+            ]:
 
                 download_status.update({
 
@@ -545,12 +671,13 @@ def run_download():
 
                     "error": None,
 
-                    "message": "Download cancelled",
+                    "message": (
+                        "Download cancelled"
+                    ),
 
                     "eta": "00:00"
-                })
 
-                print("DOWNLOAD CANCELLED")
+                })
 
                 return
 
@@ -570,7 +697,10 @@ def run_download():
 
                 "eta": "00:00",
 
-                "message": "Download completed"
+                "message": (
+                    "Download completed"
+                )
+
             })
 
         print()
@@ -585,7 +715,10 @@ def run_download():
         print("DOWNLOAD ERROR")
         print("=" * 60)
 
-        print("Error:", e)
+        print(
+            "Error:",
+            e
+        )
 
         traceback.print_exc()
 
@@ -593,9 +726,13 @@ def run_download():
 
         with download_lock:
 
-            download_status["running"] = False
+            download_status[
+                "running"
+            ] = False
 
-            if download_status["cancel_requested"]:
+            if download_status[
+                "cancel_requested"
+            ]:
 
                 download_status.update({
 
@@ -607,9 +744,12 @@ def run_download():
 
                     "error": None,
 
-                    "message": "Download cancelled",
+                    "message": (
+                        "Download cancelled"
+                    ),
 
                     "eta": "00:00"
+
                 })
 
             else:
@@ -624,7 +764,10 @@ def run_download():
 
                     "error": str(e),
 
-                    "message": "Download failed"
+                    "message": (
+                        "Download failed"
+                    )
+
                 })
 
 
@@ -632,7 +775,10 @@ def run_download():
 # START DOWNLOAD
 # ============================================================
 
-@app.route("/start_download", methods=["POST"])
+@app.route(
+    "/start_download",
+    methods=["POST"]
+)
 def start_download():
 
     with data_lock:
@@ -656,16 +802,82 @@ def start_download():
 
         return jsonify({
             "success": False,
-            "error": "Final download link not found"
+            "error": (
+                "Final download link not found"
+            )
         }), 400
+
+    final_link = str(
+        final_link
+    ).strip()
+
+    print()
+    print("=" * 60)
+    print("START DOWNLOAD REQUEST")
+    print("=" * 60)
+
+    print(
+        "Environment:",
+        "VERCEL"
+        if IS_VERCEL
+        else "LOCAL"
+    )
+
+    print(
+        "Final URL:",
+        final_link
+    )
+
+    # ========================================================
+    # VERCEL
+    #
+    # DO NOT START A PYTHON BACKGROUND DOWNLOAD.
+    #
+    # Return the authorized final URL to the browser.
+    # ========================================================
+
+    if IS_VERCEL:
+
+        print(
+            "Vercel mode:"
+        )
+
+        print(
+            "Returning direct URL"
+        )
+
+        return jsonify({
+
+            "success": True,
+
+            "direct": True,
+
+            "download_url": final_link,
+
+            "message": (
+                "Download started"
+            )
+
+        })
+
+    # ========================================================
+    # LOCALHOST
+    # ========================================================
 
     with download_lock:
 
-        if download_status["running"]:
+        if download_status[
+            "running"
+        ]:
 
             return jsonify({
+
                 "success": False,
-                "error": "Download already running"
+
+                "error": (
+                    "Download already running"
+                )
+
             }), 409
 
         download_status.update({
@@ -696,13 +908,15 @@ def start_download():
 
             "filename": "",
 
-            "message": "Starting download..."
+            "message": (
+                "Starting download..."
+            )
+
         })
 
-    print()
-    print("=" * 60)
-    print("START DOWNLOAD REQUEST")
-    print("=" * 60)
+    # ========================================================
+    # LOCAL THREAD
+    # ========================================================
 
     thread = Thread(
         target=run_download,
@@ -715,7 +929,12 @@ def start_download():
 
         "success": True,
 
-        "message": "Download started"
+        "direct": False,
+
+        "message": (
+            "Download started"
+        )
+
     })
 
 
@@ -723,23 +942,55 @@ def start_download():
 # CANCEL DOWNLOAD
 # ============================================================
 
-@app.route("/cancel_download", methods=["POST"])
+@app.route(
+    "/cancel_download",
+    methods=["POST"]
+)
 def cancel_download():
+
+    # On Vercel there is no persistent
+    # Python download thread to cancel.
+
+    if IS_VERCEL:
+
+        return jsonify({
+
+            "success": False,
+
+            "error": (
+                "Direct browser download "
+                "cannot be cancelled by Flask"
+            )
+
+        }), 400
 
     with download_lock:
 
-        if not download_status["running"]:
+        if not download_status[
+            "running"
+        ]:
 
             return jsonify({
+
                 "success": False,
-                "error": "No download is running"
+
+                "error": (
+                    "No download is running"
+                )
+
             }), 400
 
-        download_status["cancel_requested"] = True
+        download_status[
+            "cancel_requested"
+        ] = True
 
-        download_status["status"] = "cancelling"
+        download_status[
+            "status"
+        ] = "cancelling"
 
-        download_status["message"] = (
+        download_status[
+            "message"
+        ] = (
             "Cancelling download..."
         )
 
@@ -752,7 +1003,10 @@ def cancel_download():
 
         "success": True,
 
-        "message": "Cancel requested"
+        "message": (
+            "Cancel requested"
+        )
+
     })
 
 
@@ -760,50 +1014,66 @@ def cancel_download():
 # DOWNLOAD STATUS
 # ============================================================
 
-@app.route("/download_status")
+@app.route(
+    "/download_status"
+)
 def get_download_status():
 
     with download_lock:
 
-        status = download_status.copy()
+        status = (
+            download_status.copy()
+        )
 
-    return jsonify(status)
+    return jsonify(
+        status
+    )
 
 
 # ============================================================
 # OLD STATUS ROUTE
 # ============================================================
 
-@app.route("/status")
+@app.route(
+    "/status"
+)
 def status():
 
     with download_lock:
 
-        current_status = download_status.copy()
+        current_status = (
+            download_status.copy()
+        )
 
     with data_lock:
 
-        qualities = list(base_data)
+        qualities = list(
+            base_data
+        )
 
     return jsonify({
 
         "qualities": qualities,
 
         "download": current_status
+
     })
 
 
 # ============================================================
-# LOCAL DEVELOPMENT
+# RUN LOCAL
 # ============================================================
 
 if __name__ == "__main__":
 
     app.run(
-        debug=True,
-        use_reloader=False,
-        host="127.0.0.1",
-        port=5000
-    )
 
-# this is the main application 
+        debug=True,
+
+        use_reloader=False,
+
+        host="127.0.0.1",
+
+        port=5000
+
+    )
