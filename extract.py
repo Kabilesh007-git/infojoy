@@ -1,649 +1,705 @@
 import requests
-from bs4 import BeautifulSoup
 import re
+from bs4 import BeautifulSoup
 
 
 class ExtractBG:
 
     def __init__(self, movie_name, year):
 
-        self.movie_name = movie_name.strip()
+        self.movie_name = str(movie_name).strip()
         self.year = str(year).strip()
 
-        self.base_url = "https://www.themoviedb.org"
-
-        # Stage 1
-        self.name = None
-        self.href = None
-        self.date = None
-
-        # Stage 2
         self.poster = None
         self.bg_poster = None
+        self.movie_url = None
 
         self.session = requests.Session()
 
         self.session.headers.update({
             "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 "
-                "(KHTML, like Gecko) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/142.0.0.0 Safari/537.36"
             ),
             "Accept": (
                 "text/html,application/xhtml+xml,"
-                "application/xml;q=0.9,*/*;q=0.8"
+                "application/xml;q=0.9,image/avif,image/webp,"
+                "*/*;q=0.8"
             ),
             "Accept-Language": "en-US,en;q=0.9",
-            "Referer": "https://www.themoviedb.org/"
+            "Referer": "https://www.themoviedb.org/",
         })
 
-    # =========================================================
-    # NORMALIZE NAME
-    # =========================================================
+
+    # ==================================================
+    # NORMALIZE
+    # ==================================================
 
     def normalize(self, text):
 
         if not text:
             return ""
 
-        text = text.lower().strip()
+        text = text.lower()
 
-        # Replace dashes with spaces
-        text = text.replace("-", " ")
-        text = text.replace("–", " ")
-        text = text.replace("—", " ")
+        text = re.sub(
+            r"\([^)]*\)",
+            " ",
+            text
+        )
 
-        # Remove (...) 
-        text = re.sub(r"\([^)]*\)", "", text)
+        text = re.sub(
+            r"\[[^\]]*\]",
+            " ",
+            text
+        )
 
-        # Remove [...]
-        text = re.sub(r"\[[^\]]*\]", "", text)
+        text = re.sub(
+            r"[^a-z0-9\s]",
+            " ",
+            text
+        )
 
-        # Keep English letters and numbers
-        text = re.sub(r"[^a-z0-9\s]", " ", text)
-
-        # Remove extra spaces
-        text = re.sub(r"\s+", " ", text)
+        text = re.sub(
+            r"\s+",
+            " ",
+            text
+        )
 
         return text.strip()
 
-    # =========================================================
+
+    # ==================================================
     # REQUEST
-    # =========================================================
+    # ==================================================
 
     def get_page(self, url, params=None):
 
-        try:
+        for attempt in range(1, 4):
 
-            print("GET:", url)
+            try:
 
-            response = self.session.get(
-                url,
-                params=params,
-                timeout=15,
-                allow_redirects=True
-            )
+                print(
+                    f"\nREQUEST {attempt}/3"
+                )
 
-            print("STATUS:", response.status_code)
+                print(
+                    "URL:",
+                    url
+                )
 
-            if response.status_code == 200:
-                return response
+                response = self.session.get(
+                    url,
+                    params=params,
+                    timeout=20,
+                    allow_redirects=True
+                )
 
-            print(
-                "Unexpected status:",
-                response.status_code
-            )
+                print(
+                    "STATUS:",
+                    response.status_code
+                )
 
-        except requests.exceptions.ConnectionError as e:
+                print(
+                    "FINAL URL:",
+                    response.url
+                )
 
-            print(
-                "Connection error:",
-                e
-            )
+                if response.status_code == 200:
 
-        except requests.exceptions.Timeout:
+                    return response
 
-            print("Request timeout")
+            except requests.RequestException as e:
 
-        except requests.exceptions.RequestException as e:
-
-            print(
-                "Request error:",
-                e
-            )
+                print(
+                    "REQUEST ERROR:",
+                    e
+                )
 
         return None
 
-    # =========================================================
-    # STAGE 1
-    # SEARCH MOVIE
-    # =========================================================
+
+    # ==================================================
+    # STAGE ONE
+    # ==================================================
 
     def stage_one(self):
 
-        print()
-        print("=" * 60)
+        print("\n" + "=" * 50)
         print("STAGE 1 - SEARCH MOVIE")
-        print("=" * 60)
+        print("=" * 50)
 
         search_url = (
-            f"{self.base_url}/search/movie"
+            "https://www.themoviedb.org/search/movie"
         )
+
+        params = {
+            "query": self.movie_name
+        }
 
         response = self.get_page(
             search_url,
-            params={
-                "query": self.movie_name
-            }
+            params=params
         )
 
         if response is None:
 
-            print("TMDB search failed.")
+            print(
+                "TMDB SEARCH FAILED"
+            )
 
             return False
 
-        # -----------------------------------------------------
-        # Save search HTML
-        # -----------------------------------------------------
 
-        with open(
-            "search.html",
-            "w",
-            encoding="utf-8"
-        ) as file:
-
-            file.write(response.text)
-
-        print("Search HTML saved.")
-
-        # -----------------------------------------------------
-        # Parse
-        # -----------------------------------------------------
+        # ==================================================
+        # PARSE SEARCH PAGE
+        # ==================================================
 
         soup = BeautifulSoup(
             response.text,
             "html.parser"
         )
 
-        # TMDB current movie cards
-        movies = soup.select(
-            "div.comp\\:media-card"
+
+        # ==================================================
+        # FIND ALL MOVIE LINKS
+        # ==================================================
+
+        links = soup.find_all(
+            "a",
+            href=True
         )
 
         print(
-            "Movie cards found:",
-            len(movies)
+            "TOTAL LINKS:",
+            len(links)
         )
 
-        if not movies:
 
-            print("No movie cards found.")
-
-            return False
-
-        # -----------------------------------------------------
-        # Search name
-        # -----------------------------------------------------
-
-        searched_name = self.normalize(
+        target = self.normalize(
             self.movie_name
         )
 
-        # -----------------------------------------------------
-        # Check every movie
-        # -----------------------------------------------------
+        found = None
 
-        for movie in movies:
 
-            # ================================================
-            # TITLE
-            # ================================================
+        # ==================================================
+        # CHECK LINKS
+        # ==================================================
 
-            title_tag = movie.select_one("h2")
+        for link in links:
 
-            if not title_tag:
-                continue
-
-            # First span contains English title.
-            #
-            # Example:
-            #
-            # <h2>
-            #     <span>Dhurandhar: The Revenge</span>
-            #     <span> (धुरंधर: द रिवेंज)</span>
-            # </h2>
-
-            first_span = title_tag.select_one("span")
-
-            if first_span:
-
-                name = first_span.get_text(
-                    " ",
-                    strip=True
-                )
-
-            else:
-
-                name = title_tag.get_text(
-                    " ",
-                    strip=True
-                )
-
-            # ================================================
-            # DATE
-            # ================================================
-
-            date_tag = movie.select_one(
-                ".release_date"
+            href = link.get(
+                "href"
             )
-
-            if date_tag:
-
-                date = date_tag.get_text(
-                    " ",
-                    strip=True
-                )
-
-            else:
-
-                date = ""
-
-            # ================================================
-            # HREF
-            # ================================================
-
-            link = movie.select_one(
-                "a[href^='/movie/']"
-            )
-
-            if not link:
-                continue
-
-            href = link.get("href")
 
             if not href:
                 continue
 
-            # ================================================
-            # PRINT
-            # ================================================
 
-            print()
-            print("--------------------------------")
-            print("NAME :", name)
-            print("DATE :", date)
-            print("HREF :", href)
-            print("--------------------------------")
-
-            # ================================================
-            # YEAR CHECK
-            # ================================================
-
-            if self.year not in date:
-
-                print("YEAR : NOT MATCHED")
-
+            # Only movie links
+            if not href.startswith(
+                "/movie/"
+            ):
                 continue
 
-            print("YEAR : MATCHED")
 
-            # ================================================
-            # NAME CHECK
-            # ================================================
-
-            found_name = self.normalize(
-                name
+            text = link.get_text(
+                " ",
+                strip=True
             )
 
-            print(
-                "SEARCH NAME:",
-                searched_name
-            )
-
-            print(
-                "FOUND NAME :",
-                found_name
-            )
-
-            if searched_name != found_name:
-
-                print("NAME : NOT MATCHED")
-
+            if not text:
                 continue
 
-            print("NAME : MATCHED")
 
-            # ================================================
-            # MOVIE FOUND
-            # ================================================
-
-            self.name = name
-            self.href = href
-            self.date = date
-
-            print()
-            print("=" * 60)
-            print("MOVIE FOUND")
-            print("=" * 60)
-
-            print("NAME :", self.name)
-            print("YEAR :", self.year)
-            print("DATE :", self.date)
-            print("HREF :", self.href)
-
-            print("=" * 60)
-
-            # ================================================
-            # SEND HREF TO STAGE 2
-            # ================================================
-
-            return self.stage_two(
-                self.href
+            normalized_text = self.normalize(
+                text
             )
 
-        # -----------------------------------------------------
-        # Not found
-        # -----------------------------------------------------
 
-        print()
-        print("No matching movie found.")
-
-        return False
-
-    # =========================================================
-    # STAGE 2
-    # GET POSTER + BACKGROUND
-    # =========================================================
-
-    def stage_two(self, href):
-
-        print()
-        print("=" * 60)
-        print("STAGE 2 - MOVIE PAGE")
-        print("=" * 60)
-
-        # -----------------------------------------------------
-        # Create full URL
-        # -----------------------------------------------------
-
-        if href.startswith("http"):
-
-            movie_url = href
-
-        else:
-
-            movie_url = (
-                self.base_url
-                + href
+            # Get parent card text
+            parent = link.find_parent(
+                class_=lambda x: x and (
+                    "card" in str(x).lower()
+                )
             )
 
-        print(
-            "MOVIE URL:",
-            movie_url
-        )
 
-        # -----------------------------------------------------
-        # Request movie page
-        # -----------------------------------------------------
+            if parent:
 
-        response = self.get_page(
-            movie_url
-        )
-
-        if response is None:
-
-            print(
-                "Movie page request failed."
-            )
-
-            return False
-
-        # -----------------------------------------------------
-        # Save movie HTML
-        # -----------------------------------------------------
-
-        with open(
-            "movie.html",
-            "w",
-            encoding="utf-8"
-        ) as file:
-
-            file.write(
-                response.text
-            )
-
-        print(
-            "Movie HTML saved: movie.html"
-        )
-
-        # -----------------------------------------------------
-        # Parse
-        # -----------------------------------------------------
-
-        soup = BeautifulSoup(
-            response.text,
-            "html.parser"
-        )
-
-        # =====================================================
-        # POSTER
-        # =====================================================
-
-        poster_tag = soup.select_one(
-            "img.poster"
-        )
-
-        if poster_tag:
-
-            srcset = poster_tag.get(
-                "srcset",
-                ""
-            )
-
-            print()
-            print("POSTER SRCSET:")
-            print(srcset)
-
-            # Example:
-            #
-            # URL 1x,
-            # URL 2x
-
-            for item in srcset.split(","):
-
-                parts = item.strip().split()
-
-                if len(parts) != 2:
-                    continue
-
-                image_url = parts[0]
-                size = parts[1]
-
-                if size == "2x":
-
-                    self.poster = image_url
-
-                    break
-
-            # Fallback
-            if not self.poster:
-
-                self.poster = poster_tag.get(
-                    "src"
+                card_text = parent.get_text(
+                    " ",
+                    strip=True
                 )
 
-        # =====================================================
-        # BACKGROUND
-        # =====================================================
+            else:
 
-        for style in soup.find_all("style"):
+                card_text = text
 
-            css = style.get_text()
 
-            if "div.header.large.first" not in css:
-                continue
+            # ==================================================
+            # YEAR CHECK
+            # ==================================================
 
-            # Find:
-            #
-            # background-image: url('IMAGE_URL');
-
-            match = re.search(
-                r"div\.header\.large\.first"
-                r"\s*\{.*?"
-                r"background-image\s*:\s*url\(\s*"
-                r"['\"]?"
-                r"([^'\")]+)"
-                r"['\"]?"
-                r"\s*\)",
-                css,
-                re.IGNORECASE | re.DOTALL
+            year_found = (
+                self.year in card_text
             )
 
-            if match:
 
-                self.bg_poster = (
-                    match.group(1).strip()
+            # ==================================================
+            # TITLE CHECK
+            # ==================================================
+
+            title_found = (
+                target in normalized_text
+                or normalized_text in target
+            )
+
+
+            print(
+                "CHECK:",
+                text,
+                "| YEAR:",
+                year_found,
+                "| HREF:",
+                href
+            )
+
+
+            if title_found and year_found:
+
+                found = href
+
+                print(
+                    "\nMOVIE FOUND:"
+                )
+
+                print(
+                    "TITLE:",
+                    text
+                )
+
+                print(
+                    "YEAR:",
+                    self.year
+                )
+
+                print(
+                    "HREF:",
+                    href
                 )
 
                 break
 
-        # =====================================================
-        # BACKGROUND FALLBACK
-        # =====================================================
 
-        if not self.bg_poster:
+        # ==================================================
+        # FALLBACK SEARCH
+        # ==================================================
 
-            header = soup.select_one(
-                "div.header.large.first"
+        if not found:
+
+            print(
+                "\nExact match not found."
             )
 
-            if header:
+            print(
+                "Trying relaxed movie search..."
+            )
 
-                style = header.get(
-                    "style",
-                    ""
+
+            for link in links:
+
+                href = link.get(
+                    "href"
                 )
 
-                match = re.search(
-                    r"background-image\s*:\s*url\(\s*"
-                    r"['\"]?"
-                    r"([^'\")]+)"
-                    r"['\"]?"
-                    r"\s*\)",
-                    style,
-                    re.IGNORECASE
+                if not href:
+                    continue
+
+
+                if not href.startswith(
+                    "/movie/"
+                ):
+                    continue
+
+
+                text = link.get_text(
+                    " ",
+                    strip=True
                 )
 
-                if match:
+                normalized_text = self.normalize(
+                    text
+                )
 
-                    self.bg_poster = (
-                        match.group(1).strip()
+
+                if (
+                    target in normalized_text
+                    or normalized_text in target
+                ):
+
+                    found = href
+
+                    print(
+                        "RELAXED MATCH:",
+                        text
                     )
 
-        # =====================================================
-        # CLEAN URL
-        # =====================================================
+                    break
 
-        if self.poster:
 
-            self.poster = self.poster.replace(
-                "\\/",
-                "/"
+        # ==================================================
+        # MOVIE NOT FOUND
+        # ==================================================
+
+        if not found:
+
+            print(
+                "\nMOVIE NOT FOUND"
             )
 
-        if self.bg_poster:
+            return False
 
-            self.bg_poster = self.bg_poster.replace(
-                "\\/",
-                "/"
+
+        # ==================================================
+        # FULL URL
+        # ==================================================
+
+        if found.startswith("/"):
+
+            self.movie_url = (
+                "https://www.themoviedb.org"
+                + found
             )
 
-        # =====================================================
-        # RESULT
-        # =====================================================
+        else:
 
-        print()
-        print("=" * 60)
-        print("FINAL RESULT")
-        print("=" * 60)
+            self.movie_url = found
+
 
         print(
-            "MOVIE      :",
-            self.name
+            "\nMOVIE URL:",
+            self.movie_url
+        )
+
+
+        # ==================================================
+        # OPEN MOVIE PAGE
+        # ==================================================
+
+        movie_response = self.get_page(
+            self.movie_url
+        )
+
+
+        if movie_response is None:
+
+            print(
+                "MOVIE PAGE FAILED"
+            )
+
+            return False
+
+
+        # ==================================================
+        # EXTRACT IMAGES
+        # ==================================================
+
+        self.extract_images(
+            movie_response.text
+        )
+
+
+        print(
+            "\n" + "=" * 50
         )
 
         print(
-            "HREF       :",
-            self.href
+            "EXTRACTED"
         )
 
         print(
-            "DATE       :",
-            self.date
-        )
-
-        print()
-
-        print(
-            "POSTER 2x  :",
+            "POSTER:",
             self.poster
         )
 
-        print()
-
         print(
-            "BACKGROUND :",
+            "BACKGROUND:",
             self.bg_poster
         )
 
-        print("=" * 60)
+        print(
+            "=" * 50
+        )
 
-        return True
+
+        return bool(
+            self.poster or self.bg_poster
+        )
 
 
-# =============================================================
+    # ==================================================
+    # IMAGE EXTRACTION
+    # ==================================================
+
+    def extract_images(self, html):
+
+        soup = BeautifulSoup(
+            html,
+            "html.parser"
+        )
+
+
+        # ==================================================
+        # NORMAL POSTER
+        # ==================================================
+
+        poster = soup.find(
+            "img",
+            class_=lambda x: x and (
+                "poster" in x
+            )
+        )
+
+
+        if poster:
+
+            print(
+                "\nPOSTER TAG FOUND"
+            )
+
+
+            srcset = poster.get(
+                "srcset"
+            )
+
+
+            if srcset:
+
+                print(
+                    "SRCSET FOUND"
+                )
+
+                parts = srcset.split(",")
+
+
+                for part in parts:
+
+                    part = part.strip()
+
+                    print(
+                        "SRCSET:",
+                        part
+                    )
+
+
+                    if part.endswith(
+                        "2x"
+                    ):
+
+                        self.poster = (
+                            part.rsplit(
+                                " ",
+                                1
+                            )[0]
+                        )
+
+                        break
+
+
+            # ==================================================
+            # FALLBACK SRC
+            # ==================================================
+
+            if not self.poster:
+
+                src = poster.get(
+                    "src"
+                )
+
+                if src:
+
+                    self.poster = src
+
+
+        # ==================================================
+        # BACKGROUND IMAGE
+        # ==================================================
+
+        print(
+            "\nSEARCHING BACKGROUND..."
+        )
+
+
+        # This catches:
+        #
+        # background-image: url('https://...')
+        #
+
+        pattern = re.compile(
+            r"""
+            background-image
+            \s*:\s*
+            url
+            \s*\(
+            \s*
+            ['"]?
+            (https://media\.themoviedb\.org/t/p/[^'"\)\s]+)
+            ['"]?
+            \s*
+            \)
+            """,
+            re.IGNORECASE |
+            re.VERBOSE
+        )
+
+
+        matches = pattern.findall(
+            html
+        )
+
+
+        print(
+            "BACKGROUND MATCHES:",
+            len(matches)
+        )
+
+
+        # ==================================================
+        # SELECT LARGE BACKGROUND
+        # ==================================================
+
+        for url in matches:
+
+            print(
+                "BG CANDIDATE:",
+                url
+            )
+
+
+            if (
+                "w1920" in url
+                or "w1280" in url
+                or "multi_faces" in url
+            ):
+
+                self.bg_poster = (
+                    url.strip()
+                )
+
+                break
+
+
+        # ==================================================
+        # FALLBACK
+        # ==================================================
+
+        if not self.bg_poster:
+
+            for url in matches:
+
+                self.bg_poster = (
+                    url.strip()
+                )
+
+                break
+
+
+        # ==================================================
+        # EXTRA BACKGROUND SEARCH
+        # ==================================================
+
+        if not self.bg_poster:
+
+            print(
+                "Trying direct TMDB image search..."
+            )
+
+
+            image_urls = re.findall(
+                r"https://media\.themoviedb\.org/t/p/[^\"'\s\)]+",
+                html,
+                re.IGNORECASE
+            )
+
+
+            for url in image_urls:
+
+                url = url.strip()
+
+
+                if (
+                    "w1920" in url
+                    or "w1280" in url
+                    or "multi_faces" in url
+                ):
+
+                    self.bg_poster = url
+
+                    break
+
+
+    # ==================================================
+    # GET POSTER
+    # ==================================================
+
+    def get_poster(self):
+
+        return self.poster
+
+
+    # ==================================================
+    # GET BACKGROUND
+    # ==================================================
+
+    def get_background(self):
+
+        return self.bg_poster
+
+
+# ======================================================
 # TEST
-# =============================================================
+# ======================================================
 
 if __name__ == "__main__":
 
-    obj = ExtractBG
+    movie = ExtractBG  
+
     """(
-        "Dhurandhar-The-Revenge",
+        "with love",
         2026
     )
 
-    result = obj.stage_one()
-
-    if result:
-
-        print()
-        print("=" * 60)
-        print("SUCCESS")
-        print("=" * 60)
-
-        print(
-            "poster =",
-            obj.poster
-        )
-
-        print(
-            "bg_poster =",
-            obj.bg_poster
-        )
-
-    else:
-
-        print()
-        print("=" * 60)
-        print("FAILED")
-        print("=" * 60)"""
-    
+    result = movie.stage_one()
 
 
+    print("\n")
+    print("=" * 50)
+    print("FINAL RESULT")
+    print("=" * 50)
 
+    print(
+        "SUCCESS:",
+        result
+    )
 
+    print(
+        "POSTER:",
+        movie.poster
+    )
 
- 
+    print(
+        "BACKGROUND:",
+        movie.bg_poster
+    )
+
+    print(
+        "MOVIE URL:",
+        movie.movie_url
+    )
+
+    print(
+        "=" * 50
+    )"""
