@@ -1,75 +1,70 @@
 import requests
 from bs4 import BeautifulSoup
 import re
-import time
 
 
 class ExtractBG:
 
-    def __init__(self, movie_name, years):
+    def __init__(self, movie_name, year):
 
         self.movie_name = movie_name.strip()
-        self.years = str(years).strip()
+        self.year = str(year).strip()
 
         self.base_url = "https://www.themoviedb.org"
 
-        # =====================================================
-        # SESSION
-        # =====================================================
+        # Stage 1
+        self.name = None
+        self.href = None
+        self.date = None
+
+        # Stage 2
+        self.poster = None
+        self.bg_poster = None
 
         self.session = requests.Session()
 
         self.session.headers.update({
-
-            "User-Agent":
+            "User-Agent": (
                 "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                 "AppleWebKit/537.36 "
                 "(KHTML, like Gecko) "
-                "Chrome/142.0.0.0 Safari/537.36",
-
-            "Accept":
+                "Chrome/142.0.0.0 Safari/537.36"
+            ),
+            "Accept": (
                 "text/html,application/xhtml+xml,"
-                "application/xml;q=0.9,"
-                "*/*;q=0.8",
-
-            "Accept-Language":
-                "en-US,en;q=0.9",
-
-            "Connection":
-                "keep-alive"
+                "application/xml;q=0.9,*/*;q=0.8"
+            ),
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.themoviedb.org/"
         })
 
-        # =====================================================
-        # DATA
-        # =====================================================
-
-        self.name = None
-        self.url = None
-        self.date = None
-        self.poster = None
-        self.bg_poster = None
-
     # =========================================================
-    # NORMALIZE
+    # NORMALIZE NAME
     # =========================================================
 
     def normalize(self, text):
 
+        if not text:
+            return ""
+
         text = text.lower().strip()
 
-        # Remove (...) part
-        text = re.sub(
-            r"\([^)]*\)",
-            "",
-            text
-        )
+        # Replace dashes with spaces
+        text = text.replace("-", " ")
+        text = text.replace("–", " ")
+        text = text.replace("—", " ")
+
+        # Remove (...) 
+        text = re.sub(r"\([^)]*\)", "", text)
+
+        # Remove [...]
+        text = re.sub(r"\[[^\]]*\]", "", text)
+
+        # Keep English letters and numbers
+        text = re.sub(r"[^a-z0-9\s]", " ", text)
 
         # Remove extra spaces
-        text = re.sub(
-            r"\s+",
-            " ",
-            text
-        )
+        text = re.sub(r"\s+", " ", text)
 
         return text.strip()
 
@@ -79,79 +74,62 @@ class ExtractBG:
 
     def get_page(self, url, params=None):
 
-        for attempt in range(1, 4):
+        try:
 
-            try:
+            print("GET:", url)
 
-                """print(
-                    f"[{attempt}/3] GET:",
-                    url,
-                    params
-                )"""
+            response = self.session.get(
+                url,
+                params=params,
+                timeout=15,
+                allow_redirects=True
+            )
 
-                response = self.session.get(
-                    url,
-                    params=params,
-                    timeout=10
-                )
+            print("STATUS:", response.status_code)
 
-                """print(
-                    "Status:",
-                    response.status_code
-                )"""
+            if response.status_code == 200:
+                return response
 
-                if response.status_code == 200:
+            print(
+                "Unexpected status:",
+                response.status_code
+            )
 
-                    return response
+        except requests.exceptions.ConnectionError as e:
 
-                print(
-                    "Unexpected status:",
-                    response.status_code
-                )
+            print(
+                "Connection error:",
+                e
+            )
 
-            except requests.exceptions.Timeout:
+        except requests.exceptions.Timeout:
 
-                print(
-                    "Request timeout"
-                )
+            print("Request timeout")
 
-            except requests.exceptions.ConnectionError as e:
+        except requests.exceptions.RequestException as e:
 
-                """print(
-                    "Connection error:",
-                    e
-                )"""
-
-            except requests.exceptions.RequestException as e:
-
-                """print(
-                    "Request error:",
-                    e
-                )"""
-
-            if attempt < 3:
-
-                time.sleep(1)
+            print(
+                "Request error:",
+                e
+            )
 
         return None
 
     # =========================================================
-    # FIRST STAGE
+    # STAGE 1
     # SEARCH MOVIE
     # =========================================================
 
-    def first_stage(self):
+    def stage_one(self):
+
+        print()
+        print("=" * 60)
+        print("STAGE 1 - SEARCH MOVIE")
+        print("=" * 60)
 
         search_url = (
             f"{self.base_url}/search/movie"
         )
-
-        # IMPORTANT:
-        # Send query through params
-        #
-        # This creates:
-        #
-        # https://www.themoviedb.org/search/movie?query=karuppu
 
         response = self.get_page(
             search_url,
@@ -162,71 +140,82 @@ class ExtractBG:
 
         if response is None:
 
-            print(
-                "TMDB search failed."
-            )
+            print("TMDB search failed.")
 
             return False
 
-        # =====================================================
-        # PARSE
-        # =====================================================
+        # -----------------------------------------------------
+        # Save search HTML
+        # -----------------------------------------------------
+
+        with open(
+            "search.html",
+            "w",
+            encoding="utf-8"
+        ) as file:
+
+            file.write(response.text)
+
+        print("Search HTML saved.")
+
+        # -----------------------------------------------------
+        # Parse
+        # -----------------------------------------------------
 
         soup = BeautifulSoup(
             response.text,
             "html.parser"
         )
 
-        # =====================================================
-        # MOVIE CARDS
-        # =====================================================
-
+        # TMDB current movie cards
         movies = soup.select(
             "div.comp\\:media-card"
         )
 
-        """print(
+        print(
             "Movie cards found:",
             len(movies)
-        )"""
+        )
 
         if not movies:
 
-            print(
-                "No movie cards found."
-            )
+            print("No movie cards found.")
 
             return False
 
-        # =====================================================
-        # LOOP
-        # =====================================================
+        # -----------------------------------------------------
+        # Search name
+        # -----------------------------------------------------
+
+        searched_name = self.normalize(
+            self.movie_name
+        )
+
+        # -----------------------------------------------------
+        # Check every movie
+        # -----------------------------------------------------
 
         for movie in movies:
 
-            # -------------------------------------------------
+            # ================================================
             # TITLE
-            # -------------------------------------------------
+            # ================================================
 
-            title_tag = movie.select_one(
-                "h2"
-            )
+            title_tag = movie.select_one("h2")
 
             if not title_tag:
-
                 continue
 
-            # Get first span
+            # First span contains English title.
             #
-            # Kattradhu Thamizh
+            # Example:
             #
-            # instead of:
-            #
-            # Kattradhu Thamizh (கற்றது தமிழ்)
+            # <h2>
+            #     <span>Dhurandhar: The Revenge</span>
+            #     <span> (धुरंधर: द रिवेंज)</span>
+            # </h2>
 
-            first_span = title_tag.select_one(
-                "span"
-            )
+            first_span = title_tag.select_one("span")
 
             if first_span:
 
@@ -242,9 +231,9 @@ class ExtractBG:
                     strip=True
                 )
 
-            # -------------------------------------------------
+            # ================================================
             # DATE
-            # -------------------------------------------------
+            # ================================================
 
             date_tag = movie.select_one(
                 ".release_date"
@@ -261,155 +250,177 @@ class ExtractBG:
 
                 date = ""
 
-            # -------------------------------------------------
-            # DEBUG
-            # -------------------------------------------------
-
-            """print(
-                "Checking:",
-                name,
-                "|",
-                date
-            )"""
-
-            # -------------------------------------------------
-            # YEAR
-            # -------------------------------------------------
-
-            if self.years not in date:
-
-                continue
-
-            # -------------------------------------------------
-            # NAME
-            # -------------------------------------------------
-
-            if (
-                self.normalize(name)
-                !=
-                self.normalize(
-                    self.movie_name
-                )
-            ):
-
-                continue
-
-            # -------------------------------------------------
-            # URL
-            # -------------------------------------------------
+            # ================================================
+            # HREF
+            # ================================================
 
             link = movie.select_one(
                 "a[href^='/movie/']"
             )
 
             if not link:
+                continue
+
+            href = link.get("href")
+
+            if not href:
+                continue
+
+            # ================================================
+            # PRINT
+            # ================================================
+
+            print()
+            print("--------------------------------")
+            print("NAME :", name)
+            print("DATE :", date)
+            print("HREF :", href)
+            print("--------------------------------")
+
+            # ================================================
+            # YEAR CHECK
+            # ================================================
+
+            if self.year not in date:
+
+                print("YEAR : NOT MATCHED")
 
                 continue
 
-            movie_url = link.get(
-                "href"
+            print("YEAR : MATCHED")
+
+            # ================================================
+            # NAME CHECK
+            # ================================================
+
+            found_name = self.normalize(
+                name
             )
 
-            if not movie_url:
+            print(
+                "SEARCH NAME:",
+                searched_name
+            )
+
+            print(
+                "FOUND NAME :",
+                found_name
+            )
+
+            if searched_name != found_name:
+
+                print("NAME : NOT MATCHED")
 
                 continue
 
-            # =================================================
-            # SAVE
-            # =================================================
+            print("NAME : MATCHED")
+
+            # ================================================
+            # MOVIE FOUND
+            # ================================================
 
             self.name = name
-            self.url = movie_url
+            self.href = href
             self.date = date
 
-            """print()
-            print(
-                "MOVIE FOUND"
+            print()
+            print("=" * 60)
+            print("MOVIE FOUND")
+            print("=" * 60)
+
+            print("NAME :", self.name)
+            print("YEAR :", self.year)
+            print("DATE :", self.date)
+            print("HREF :", self.href)
+
+            print("=" * 60)
+
+            # ================================================
+            # SEND HREF TO STAGE 2
+            # ================================================
+
+            return self.stage_two(
+                self.href
             )
 
-            print(
-                "Name:",
-                self.name
-            )
-
-            print(
-                "URL:",
-                self.url
-            )
-
-            print(
-                "Date:",
-                self.date
-            )"""
-
-            # =================================================
-            # SECOND STAGE
-            # =================================================
-
-            return self.second_stage(
-                movie_url
-            )
+        # -----------------------------------------------------
+        # Not found
+        # -----------------------------------------------------
 
         print()
-        print(
-            "Matching movie not found."
-        )
+        print("No matching movie found.")
 
         return False
 
     # =========================================================
-    # SECOND STAGE
-    # POSTER + BACKGROUND
+    # STAGE 2
+    # GET POSTER + BACKGROUND
     # =========================================================
 
-    def second_stage(self, url):
+    def stage_two(self, href):
+
+        print()
+        print("=" * 60)
+        print("STAGE 2 - MOVIE PAGE")
+        print("=" * 60)
 
         # -----------------------------------------------------
-        # FULL URL
+        # Create full URL
         # -----------------------------------------------------
 
-        if url.startswith("http"):
+        if href.startswith("http"):
 
-            full_url = url
+            movie_url = href
 
         else:
 
-            full_url = (
-                self.base_url +
-                url
+            movie_url = (
+                self.base_url
+                + href
             )
 
-        """print()
         print(
-            "Movie page:",
-            full_url
-        )"""
+            "MOVIE URL:",
+            movie_url
+        )
 
         # -----------------------------------------------------
-        # REQUEST
+        # Request movie page
         # -----------------------------------------------------
 
         response = self.get_page(
-            full_url
+            movie_url
         )
 
         if response is None:
 
             print(
-                "Movie page failed."
+                "Movie page request failed."
             )
 
             return False
 
-        # =====================================================
-        # SAVE HTML
-        # =====================================================
+        # -----------------------------------------------------
+        # Save movie HTML
+        # -----------------------------------------------------
 
-        
+        with open(
+            "movie.html",
+            "w",
+            encoding="utf-8"
+        ) as file:
 
-        # =====================================================
-        # PARSE
-        # =====================================================
+            file.write(
+                response.text
+            )
+
+        print(
+            "Movie HTML saved: movie.html"
+        )
+
+        # -----------------------------------------------------
+        # Parse
+        # -----------------------------------------------------
 
         soup = BeautifulSoup(
             response.text,
@@ -431,6 +442,10 @@ class ExtractBG:
                 ""
             )
 
+            print()
+            print("POSTER SRCSET:")
+            print(srcset)
+
             # Example:
             #
             # URL 1x,
@@ -441,7 +456,6 @@ class ExtractBG:
                 parts = item.strip().split()
 
                 if len(parts) != 2:
-
                     continue
 
                 image_url = parts[0]
@@ -453,40 +467,38 @@ class ExtractBG:
 
                     break
 
+            # Fallback
+            if not self.poster:
+
+                self.poster = poster_tag.get(
+                    "src"
+                )
+
         # =====================================================
         # BACKGROUND
         # =====================================================
 
-        styles = soup.find_all(
-            "style"
-        )
-
-        for style in styles:
+        for style in soup.find_all("style"):
 
             css = style.get_text()
 
-            # We specifically look for:
-            #
-            # div.header.large.first {
-            #
-            #     background-image: url('...');
-            #
-            # }
-
             if "div.header.large.first" not in css:
-
                 continue
 
+            # Find:
+            #
+            # background-image: url('IMAGE_URL');
+
             match = re.search(
-                r"div\.header\.large\.first\s*\{"
-                r".*?"
-                r"background-image\s*:"
-                r"\s*url\(['\"]?"
+                r"div\.header\.large\.first"
+                r"\s*\{.*?"
+                r"background-image\s*:\s*url\(\s*"
+                r"['\"]?"
                 r"([^'\")]+)"
-                r"['\"]?\)",
+                r"['\"]?"
+                r"\s*\)",
                 css,
-                re.IGNORECASE |
-                re.DOTALL
+                re.IGNORECASE | re.DOTALL
             )
 
             if match:
@@ -498,45 +510,95 @@ class ExtractBG:
                 break
 
         # =====================================================
+        # BACKGROUND FALLBACK
+        # =====================================================
+
+        if not self.bg_poster:
+
+            header = soup.select_one(
+                "div.header.large.first"
+            )
+
+            if header:
+
+                style = header.get(
+                    "style",
+                    ""
+                )
+
+                match = re.search(
+                    r"background-image\s*:\s*url\(\s*"
+                    r"['\"]?"
+                    r"([^'\")]+)"
+                    r"['\"]?"
+                    r"\s*\)",
+                    style,
+                    re.IGNORECASE
+                )
+
+                if match:
+
+                    self.bg_poster = (
+                        match.group(1).strip()
+                    )
+
+        # =====================================================
+        # CLEAN URL
+        # =====================================================
+
+        if self.poster:
+
+            self.poster = self.poster.replace(
+                "\\/",
+                "/"
+            )
+
+        if self.bg_poster:
+
+            self.bg_poster = self.bg_poster.replace(
+                "\\/",
+                "/"
+            )
+
+        # =====================================================
         # RESULT
         # =====================================================
 
-        """print()
-        print(
-            "=" * 60
-        )
+        print()
+        print("=" * 60)
+        print("FINAL RESULT")
+        print("=" * 60)
 
         print(
-            "EXTRACTION RESULT"
-        )
-
-        print(
-            "=" * 60
-        )
-
-        print(
-            "Movie      :",
+            "MOVIE      :",
             self.name
         )
 
         print(
-            "URL        :",
-            self.url
+            "HREF       :",
+            self.href
         )
 
         print(
-            "Poster 2x  :",
+            "DATE       :",
+            self.date
+        )
+
+        print()
+
+        print(
+            "POSTER 2x  :",
             self.poster
         )
 
+        print()
+
         print(
-            "Background :",
+            "BACKGROUND :",
             self.bg_poster
         )
 
-        print(
-            "=" * 60
-        )"""
+        print("=" * 60)
 
         return True
 
@@ -545,42 +607,36 @@ class ExtractBG:
 # TEST
 # =============================================================
 
+if __name__ == "__main__":
 
-
-obj = ExtractBG
-
-"""(
-        "karuppu",
+    obj = ExtractBG
+    """(
+        "Dhurandhar-The-Revenge",
         2026
     )
 
-    obj.first_stage()
-    print(obj.poster)
-    print(obj.bg_poster)"""
+    result = obj.stage_one()
 
-"""if result:
+    if result:
 
         print()
-        print(
-            "SUCCESS"
-        )
+        print("=" * 60)
+        print("SUCCESS")
+        print("=" * 60)
 
         print(
-            "POSTER:",
+            "poster =",
             obj.poster
         )
 
         print(
-            "BACKGROUND:",
+            "bg_poster =",
             obj.bg_poster
         )
 
     else:
 
         print()
-        print(
-            "Extraction failed."
-        )"""
-
-
-
+        print("=" * 60)
+        print("FAILED")
+        print("=" * 60)"""
