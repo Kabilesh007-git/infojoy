@@ -12,7 +12,6 @@ BASE_DIR = os.path.dirname(
     )
 )
 
-# Allow Python to find packages.py, processing_unit.py, etc.
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
@@ -22,11 +21,10 @@ if BASE_DIR not in sys.path:
 # ============================================================
 
 from flask import Flask, render_template, request, jsonify
+from threading import Thread, Lock
 
 from processing_unit import rg
 from downloader import MovieDownloader
-
-from threading import Thread, Lock
 
 
 # ============================================================
@@ -56,24 +54,35 @@ download_lock = Lock()
 # ============================================================
 
 download_status = {
+
     "status": "idle",
+
     "running": False,
+
     "completed": False,
+
     "cancelled": False,
+
     "cancel_requested": False,
+
     "error": None,
 
     "percentage": 0,
 
     "downloaded": 0,
+
     "total": 0,
 
     "speed": 0,
 
-    "eta": "00:00",
-    "elapsed": "00:00",
+    "eta": "00:00:00",
+
+    "elapsed": "00:00:00",
 
     "filename": "",
+
+    "movie_name": "",
+
     "message": ""
 }
 
@@ -108,11 +117,13 @@ def reset_download_status():
 
             "speed": 0,
 
-            "eta": "00:00",
+            "eta": "00:00:00",
 
-            "elapsed": "00:00",
+            "elapsed": "00:00:00",
 
             "filename": "",
+
+            "movie_name": "",
 
             "message": ""
         })
@@ -235,6 +246,8 @@ def download():
 
     thread.start()
 
+    # Keep your existing behaviour:
+    # wait until movie processing is complete.
     thread.join()
 
     with data_lock:
@@ -486,8 +499,6 @@ def movie_details():
 
 def run_download():
 
-    global current_data
-
     try:
 
         print()
@@ -529,54 +540,33 @@ def run_download():
             download_lock
         )
 
+        # ====================================================
+        # IMPORTANT
+        #
+        # MovieDownloader controls the final state.
+        # DO NOT manually set completed here.
+        # ====================================================
+
         with download_lock:
 
-            if download_status["cancel_requested"]:
+            current_status = download_status.get(
+                "status"
+            )
 
-                download_status.update({
-
-                    "status": "cancelled",
-
-                    "running": False,
-
-                    "completed": False,
-
-                    "cancelled": True,
-
-                    "error": None,
-
-                    "message": "Download cancelled",
-
-                    "eta": "00:00"
-                })
+            if current_status == "cancelled":
 
                 print("DOWNLOAD CANCELLED")
-
                 return
 
-            download_status.update({
+            if current_status == "error":
 
-                "status": "completed",
+                print("DOWNLOAD ERROR")
+                return
 
-                "running": False,
+            if current_status == "completed":
 
-                "completed": True,
-
-                "cancelled": False,
-
-                "error": None,
-
-                "percentage": 100,
-
-                "eta": "00:00",
-
-                "message": "Download completed"
-            })
-
-        print()
-        print("=" * 60)
-        print("DOWNLOAD COMPLETED")
-        print("=" * 60)
+                print("DOWNLOAD COMPLETED")
+                return
 
     except Exception as e:
 
@@ -593,23 +583,34 @@ def run_download():
 
         with download_lock:
 
-            download_status["running"] = False
-
-            if download_status["cancel_requested"]:
+            # Never overwrite a real cancellation
+            if download_status.get(
+                "status"
+            ) == "cancelled":
 
                 download_status.update({
 
                     "status": "cancelled",
 
+                    "running": False,
+
                     "completed": False,
 
                     "cancelled": True,
 
+                    "cancel_requested": True,
+
                     "error": None,
 
-                    "message": "Download cancelled",
+                    "percentage": 0,
 
-                    "eta": "00:00"
+                    "downloaded": 0,
+
+                    "speed": 0,
+
+                    "eta": "00:00:00",
+
+                    "message": "Download cancelled"
                 })
 
             else:
@@ -617,6 +618,8 @@ def run_download():
                 download_status.update({
 
                     "status": "error",
+
+                    "running": False,
 
                     "completed": False,
 
@@ -661,7 +664,10 @@ def start_download():
 
     with download_lock:
 
-        if download_status["running"]:
+        if download_status.get(
+            "running",
+            False
+        ):
 
             return jsonify({
                 "success": False,
@@ -690,11 +696,17 @@ def start_download():
 
             "speed": 0,
 
-            "eta": "00:00",
+            "eta": "00:00:00",
 
-            "elapsed": "00:00",
+            "elapsed": "00:00:00",
 
             "filename": "",
+
+            "movie_name": getattr(
+                data,
+                "movie_name",
+                "movie"
+            ),
 
             "message": "Starting download..."
         })
@@ -728,20 +740,49 @@ def cancel_download():
 
     with download_lock:
 
-        if not download_status["running"]:
+        if not download_status.get(
+            "running",
+            False
+        ):
 
             return jsonify({
                 "success": False,
                 "error": "No download is running"
             }), 400
 
-        download_status["cancel_requested"] = True
+        # Tell downloader to stop
+        download_status[
+            "cancel_requested"
+        ] = True
 
-        download_status["status"] = "cancelling"
+        download_status[
+            "status"
+        ] = "cancelling"
 
-        download_status["message"] = (
-            "Cancelling download..."
-        )
+        download_status[
+            "message"
+        ] = "Cancelling download..."
+
+        # Immediately show zero
+        download_status[
+            "percentage"
+        ] = 0
+
+        download_status[
+            "downloaded"
+        ] = 0
+
+        download_status[
+            "speed"
+        ] = 0
+
+        download_status[
+            "eta"
+        ] = "00:00:00"
+
+        download_status[
+            "elapsed"
+        ] = "00:00:00"
 
     print()
     print("=" * 60)
@@ -794,15 +835,14 @@ def status():
 
 
 # ============================================================
-# LOCAL DEVELOPMENT
+# RUN
 # ============================================================
 
 if __name__ == "__main__":
 
     app.run(
-    host="0.0.0.0",
-    port=5000,
-    debug=True
-)
-#
-# this is the main application 
+        host="0.0.0.0",
+        port=5000,
+        debug=True,
+        use_reloader=False
+    )

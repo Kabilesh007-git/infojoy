@@ -67,8 +67,6 @@
         <div class="movie-info">
 
 
-            <!-- MOVIE TITLE -->
-
             <h1>
                 {{ movie }}
             </h1>
@@ -117,17 +115,30 @@
 
 
             <!-- ================================================= -->
-            <!-- DOWNLOAD BUTTON -->
+            <!-- BUTTONS -->
             <!-- ================================================= -->
 
-            <button
-                class="watch-btn"
-                id="downloadBtn"
-                onclick="startDownload()">
+            <div class="main-buttons">
 
-                DOWNLOAD
+                <button
+                    class="watch-btn"
+                    id="downloadBtn"
+                    onclick="startDownload()">
 
-            </button>
+                    DOWNLOAD
+
+                </button>
+
+
+                <button
+                    class="home-btn"
+                    onclick="goHome()">
+
+                    🏠 GO TO HOME
+
+                </button>
+
+            </div>
 
 
             <!-- ================================================= -->
@@ -189,7 +200,7 @@
                         Speed:
 
                         <strong id="speed">
-                            0 MB/s
+                            0.00 MB/s
                         </strong>
 
                     </span>
@@ -208,7 +219,7 @@
                         Time:
 
                         <strong id="elapsed">
-                            00:00
+                            00:00:00
                         </strong>
 
                     </span>
@@ -219,7 +230,7 @@
                         ETA:
 
                         <strong id="eta">
-                            00:00
+                            00:00:00
                         </strong>
 
                     </span>
@@ -238,7 +249,7 @@
                         Downloaded:
 
                         <strong id="downloaded">
-                            0 MB
+                            0.00 MB
                         </strong>
 
                     </span>
@@ -258,7 +269,7 @@
 
 
                 <!-- ================================================= -->
-                <!-- CANCEL BUTTON -->
+                <!-- CANCEL -->
                 <!-- ================================================= -->
 
                 <div class="download-buttons">
@@ -286,38 +297,198 @@
 
 
 
-<!-- ========================================================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================================================= -->
-
 <script>
 
+
+/* ============================================================
+   GLOBAL VARIABLES
+   ============================================================ */
+
 let checkingDownload = false;
+
 let cancellingDownload = false;
+
 let downloadSession = 0;
+
+
+/*
+ * Local elapsed timer.
+ *
+ * This runs independently from Flask.
+ *
+ * Therefore the elapsed time changes every
+ * 1 second even if the backend takes longer
+ * to send another status update.
+ */
+
+let elapsedTimer = null;
+
+let elapsedStartTime = null;
+
+
+/* ============================================================
+   FORMAT TIME
+   ============================================================ */
+
+function formatTime(totalSeconds) {
+
+    totalSeconds =
+        Math.max(
+            0,
+            Math.floor(
+                Number(totalSeconds) || 0
+            )
+        );
+
+    const hours =
+        Math.floor(
+            totalSeconds / 3600
+        );
+
+    const minutes =
+        Math.floor(
+            (totalSeconds % 3600) / 60
+        );
+
+    const seconds =
+        totalSeconds % 60;
+
+    return (
+
+        String(hours).padStart(2, "0") +
+
+        ":" +
+
+        String(minutes).padStart(2, "0") +
+
+        ":" +
+
+        String(seconds).padStart(2, "0")
+    );
+}
+
+
+/* ============================================================
+   START ELAPSED TIMER
+   ============================================================ */
+
+function startElapsedTimer() {
+
+    stopElapsedTimer();
+
+    elapsedStartTime =
+        Date.now();
+
+
+    /*
+     * Immediately show 00:00:00
+     */
+
+    const elapsedElement =
+        document.getElementById(
+            "elapsed"
+        );
+
+    if (elapsedElement) {
+
+        elapsedElement.innerText =
+            "00:00:00";
+    }
+
+
+    /*
+     * Update exactly once every second.
+     */
+
+    elapsedTimer =
+        setInterval(
+            function () {
+
+                if (
+                    elapsedStartTime === null
+                ) {
+
+                    return;
+                }
+
+                const elapsedSeconds =
+                    (
+                        Date.now() -
+                        elapsedStartTime
+                    ) / 1000;
+
+
+                if (elapsedElement) {
+
+                    elapsedElement.innerText =
+                        formatTime(
+                            elapsedSeconds
+                        );
+                }
+
+            },
+            1000
+        );
+}
+
+
+/* ============================================================
+   STOP ELAPSED TIMER
+   ============================================================ */
+
+function stopElapsedTimer() {
+
+    if (
+        elapsedTimer !== null
+    ) {
+
+        clearInterval(
+            elapsedTimer
+        );
+    }
+
+    elapsedTimer =
+        null;
+
+    elapsedStartTime =
+        null;
+}
 
 
 /* ============================================================
    FORMAT SIZE
    ============================================================ */
 
-function formatSize(mb) {
+function formatSize(bytes) {
 
-    mb = Number(mb);
+    bytes =
+        Number(bytes);
 
-    if (!Number.isFinite(mb) || mb < 0) {
+    if (
+        !Number.isFinite(bytes) ||
+        bytes < 0
+    ) {
 
         return "Unknown";
     }
 
-    if (mb >= 1000) {
+
+    if (
+        bytes >=
+        1024 * 1024 * 1024
+    ) {
 
         return (
-            mb / 1000
+            bytes /
+            (1024 * 1024 * 1024)
         ).toFixed(2) + " GB";
     }
 
-    return mb.toFixed(2) + " MB";
+
+    return (
+        bytes /
+        (1024 * 1024)
+    ).toFixed(2) + " MB";
 }
 
 
@@ -427,16 +598,65 @@ function resetDownloadUI() {
         "0.00 MB/s";
 
     e.elapsed.innerText =
-        "00:00";
+        "00:00:00";
 
     e.eta.innerText =
-        "00:00";
+        "00:00:00";
 
     e.downloaded.innerText =
         "0.00 MB";
 
     e.total.innerText =
         "Unknown";
+}
+
+
+/* ============================================================
+   RESET UI AFTER CANCEL
+   ============================================================ */
+
+function resetAfterCancel() {
+
+    stopElapsedTimer();
+
+    const e =
+        getDownloadElements();
+
+    e.title.innerText =
+        "Download Cancelled";
+
+    e.progress.style.width =
+        "0%";
+
+    e.percentage.innerText =
+        "0%";
+
+    e.speed.innerText =
+        "0.00 MB/s";
+
+    e.elapsed.innerText =
+        "00:00:00";
+
+    e.eta.innerText =
+        "00:00:00";
+
+    e.downloaded.innerText =
+        "0.00 MB";
+
+    e.button.disabled =
+        false;
+
+    e.button.innerText =
+        "DOWNLOAD";
+
+    e.cancel.style.display =
+        "none";
+
+    e.cancel.disabled =
+        false;
+
+    e.cancel.innerText =
+        "CANCEL DOWNLOAD";
 }
 
 
@@ -450,10 +670,6 @@ function updateDownloadCard(data) {
         getDownloadElements();
 
 
-    /* ========================================================
-       MOVIE NAME
-       ======================================================== */
-
     const movieName =
         data.movie_name ||
         "{{ movie }}";
@@ -464,11 +680,11 @@ function updateDownloadCard(data) {
        ======================================================== */
 
     if (
-        data.status === "downloading"
+        data.status === "connecting"
     ) {
 
         e.title.innerText =
-            "Downloading: " +
+            "Connecting: " +
             movieName;
 
     }
@@ -479,6 +695,16 @@ function updateDownloadCard(data) {
 
         e.title.innerText =
             "Starting: " +
+            movieName;
+
+    }
+
+    else if (
+        data.status === "downloading"
+    ) {
+
+        e.title.innerText =
+            "Downloading: " +
             movieName;
 
     }
@@ -529,7 +755,11 @@ function updateDownloadCard(data) {
     let percentage =
         Number(data.percentage);
 
-    if (!Number.isFinite(percentage)) {
+    if (
+        !Number.isFinite(
+            percentage
+        )
+    ) {
 
         percentage = 0;
     }
@@ -544,7 +774,8 @@ function updateDownloadCard(data) {
         );
 
     e.percentage.innerText =
-        percentage.toFixed(2) + "%";
+        percentage.toFixed(2) +
+        "%";
 
     e.progress.style.width =
         percentage + "%";
@@ -557,13 +788,26 @@ function updateDownloadCard(data) {
     let speed =
         Number(data.speed);
 
-    if (!Number.isFinite(speed)) {
+    if (
+        !Number.isFinite(
+            speed
+        )
+    ) {
 
         speed = 0;
     }
 
+    /*
+     * Backend speed is bytes/sec.
+     * Convert to MB/sec.
+     */
+
+    const speedMB =
+        speed /
+        (1024 * 1024);
+
     e.speed.innerText =
-        speed.toFixed(2) +
+        speedMB.toFixed(2) +
         " MB/s";
 
 
@@ -571,9 +815,24 @@ function updateDownloadCard(data) {
        ELAPSED
        ======================================================== */
 
-    e.elapsed.innerText =
-        data.elapsed ||
-        "00:00";
+    /*
+     * Do NOT continuously overwrite elapsed with the
+     * backend value while the local timer is running.
+     *
+     * This is what makes the timer smooth.
+     */
+
+    if (
+        data.status !== "downloading" &&
+        data.status !== "starting" &&
+        data.status !== "connecting" &&
+        data.status !== "cancelling"
+    ) {
+
+        e.elapsed.innerText =
+            data.elapsed ||
+            "00:00:00";
+    }
 
 
     /* ========================================================
@@ -582,7 +841,7 @@ function updateDownloadCard(data) {
 
     e.eta.innerText =
         data.eta ||
-        "00:00";
+        "00:00:00";
 
 
     /* ========================================================
@@ -593,11 +852,15 @@ function updateDownloadCard(data) {
         Number(data.downloaded);
 
     if (
-        Number.isFinite(downloaded)
+        Number.isFinite(
+            downloaded
+        )
     ) {
 
         e.downloaded.innerText =
-            formatSize(downloaded);
+            formatSize(
+                downloaded
+            );
 
     }
     else {
@@ -620,7 +883,9 @@ function updateDownloadCard(data) {
     ) {
 
         e.total.innerText =
-            formatSize(total);
+            formatSize(
+                total
+            );
 
     }
     else {
@@ -635,7 +900,8 @@ function updateDownloadCard(data) {
        ======================================================== */
 
     if (
-        data.status === "starting"
+        data.status === "starting" ||
+        data.status === "connecting"
     ) {
 
         e.button.disabled =
@@ -710,14 +976,7 @@ function updateDownloadCard(data) {
         cancellingDownload =
             false;
 
-        e.button.disabled =
-            false;
-
-        e.button.innerText =
-            "DOWNLOAD";
-
-        e.cancel.style.display =
-            "none";
+        resetAfterCancel();
     }
 
 
@@ -735,6 +994,8 @@ function updateDownloadCard(data) {
         cancellingDownload =
             false;
 
+        stopElapsedTimer();
+
         e.percentage.innerText =
             "100%";
 
@@ -742,7 +1003,7 @@ function updateDownloadCard(data) {
             "100%";
 
         e.eta.innerText =
-            "00:00";
+            "00:00:00";
 
         e.button.innerText =
             "DOWNLOADED";
@@ -769,6 +1030,8 @@ function updateDownloadCard(data) {
         cancellingDownload =
             false;
 
+        stopElapsedTimer();
+
         e.title.innerText =
             "Download Failed";
 
@@ -794,20 +1057,27 @@ function updateDownloadCard(data) {
 
 function startDownload() {
 
-    if (checkingDownload) {
+    if (
+        checkingDownload
+    ) {
 
         return;
     }
 
-    if (cancellingDownload) {
+    if (
+        cancellingDownload
+    ) {
 
         return;
     }
+
 
     downloadSession++;
 
+
     const session =
         downloadSession;
+
 
     checkingDownload =
         true;
@@ -815,7 +1085,17 @@ function startDownload() {
     cancellingDownload =
         false;
 
+
     resetDownloadUI();
+
+
+    /*
+     * START LOCAL TIMER IMMEDIATELY.
+     *
+     * It does not wait for Flask.
+     */
+
+    startElapsedTimer();
 
 
     fetch(
@@ -828,6 +1108,7 @@ function startDownload() {
     .then(response => {
 
         return response.json();
+
     })
 
     .then(data => {
@@ -837,7 +1118,11 @@ function startDownload() {
             data
         );
 
-        if (!data.success) {
+        if (
+            !data.success
+        ) {
+
+            stopElapsedTimer();
 
             checkingDownload =
                 false;
@@ -872,6 +1157,8 @@ function startDownload() {
         console.error(
             error
         );
+
+        stopElapsedTimer();
 
         checkingDownload =
             false;
@@ -914,11 +1201,14 @@ function cancelDownload() {
         return;
     }
 
+
     cancellingDownload =
         true;
 
+
     const e =
         getDownloadElements();
+
 
     e.cancel.disabled =
         true;
@@ -937,6 +1227,7 @@ function cancelDownload() {
     .then(response => {
 
         return response.json();
+
     })
 
     .then(data => {
@@ -946,7 +1237,9 @@ function cancelDownload() {
             data
         );
 
-        if (!data.success) {
+        if (
+            !data.success
+        ) {
 
             cancellingDownload =
                 false;
@@ -959,6 +1252,40 @@ function cancelDownload() {
 
             return;
         }
+
+
+        /*
+         * Immediately show zero.
+         */
+
+        e.progress.style.width =
+            "0%";
+
+        e.percentage.innerText =
+            "0%";
+
+        e.downloaded.innerText =
+            "0.00 MB";
+
+        e.speed.innerText =
+            "0.00 MB/s";
+
+        e.elapsed.innerText =
+            "00:00:00";
+
+        e.eta.innerText =
+            "00:00:00";
+
+        e.title.innerText =
+            "Cancelling download...";
+
+
+        /*
+         * Stop the local timer.
+         */
+
+        stopElapsedTimer();
+
 
         checkDownloadStatus(
             downloadSession
@@ -1000,6 +1327,7 @@ function checkDownloadStatus(
         return;
     }
 
+
     if (
         !checkingDownload &&
         !cancellingDownload
@@ -1020,6 +1348,7 @@ function checkDownloadStatus(
     .then(response => {
 
         return response.json();
+
     })
 
     .then(data => {
@@ -1029,6 +1358,7 @@ function checkDownloadStatus(
             data
         );
 
+
         if (
             session !==
             downloadSession
@@ -1036,6 +1366,7 @@ function checkDownloadStatus(
 
             return;
         }
+
 
         updateDownloadCard(
             data
@@ -1048,6 +1379,7 @@ function checkDownloadStatus(
 
         if (
             data.running === true ||
+            data.status === "connecting" ||
             data.status === "starting" ||
             data.status === "downloading" ||
             data.status === "cancelling"
@@ -1074,6 +1406,7 @@ function checkDownloadStatus(
             error
         );
 
+
         if (
             session ===
             downloadSession
@@ -1095,8 +1428,28 @@ function checkDownloadStatus(
 
 
 /* ============================================================
-   IMPORTANT:
-   CHECK BACKEND WHEN PAGE OPENS
+   GO HOME
+   ============================================================ */
+
+function goHome() {
+
+    downloadSession++;
+
+    checkingDownload =
+        false;
+
+    cancellingDownload =
+        false;
+
+    stopElapsedTimer();
+
+    window.location.href =
+        "/";
+}
+
+
+/* ============================================================
+   PAGE LOAD
    ============================================================ */
 
 window.addEventListener(
@@ -1113,6 +1466,7 @@ window.addEventListener(
         .then(response => {
 
             return response.json();
+
         })
 
         .then(data => {
@@ -1122,11 +1476,6 @@ window.addEventListener(
                 data
             );
 
-            /*
-             If another movie is already
-             downloading in Flask,
-             immediately show it.
-            */
 
             if (
                 data.running === true
@@ -1142,6 +1491,15 @@ window.addEventListener(
                 updateDownloadCard(
                     data
                 );
+
+
+                /*
+                 * Start a local timer when recovering
+                 * an active download.
+                 */
+
+                startElapsedTimer();
+
 
                 checkDownloadStatus(
                     downloadSession

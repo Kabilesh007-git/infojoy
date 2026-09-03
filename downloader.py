@@ -20,7 +20,9 @@ class MovieDownloader:
         )
 
         if self.url:
-            self.url = str(self.url).strip()
+            self.url = str(
+                self.url
+            ).strip()
 
         # =====================================================
         # MOVIE NAME
@@ -38,7 +40,7 @@ class MovieDownloader:
             self.movie_name = "movie"
 
         # =====================================================
-        # VERCEL DETECTION
+        # VERCEL
         # =====================================================
 
         self.is_vercel = (
@@ -51,8 +53,11 @@ class MovieDownloader:
         # =====================================================
 
         if self.is_vercel:
+
             self.folder = "/tmp/Infojoy"
+
         else:
+
             self.folder = os.path.join(
                 os.path.expanduser("~"),
                 "Downloads",
@@ -73,6 +78,7 @@ class MovieDownloader:
         invalid_chars = '<>:"/\\|?*'
 
         for char in invalid_chars:
+
             filename = filename.replace(
                 char,
                 "_"
@@ -92,14 +98,21 @@ class MovieDownloader:
     # FORMAT TIME
     # =========================================================
 
-    def format_time(self, seconds):
+    @staticmethod
+    def format_time(seconds):
 
         try:
+
             seconds = max(
                 0,
                 int(seconds)
             )
-        except (TypeError, ValueError):
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
             seconds = 0
 
         hours = seconds // 3600
@@ -110,16 +123,52 @@ class MovieDownloader:
 
         seconds = seconds % 60
 
-        if hours:
+        return (
+            f"{hours:02d}:"
+            f"{minutes:02d}:"
+            f"{seconds:02d}"
+        )
+
+    # =========================================================
+    # FORMAT SIZE
+    # =========================================================
+
+    @staticmethod
+    def format_size(bytes_value):
+
+        try:
+
+            bytes_value = float(
+                bytes_value
+            )
+
+        except (
+            TypeError,
+            ValueError
+        ):
+
+            return "0 B"
+
+        if bytes_value < 1024:
+
             return (
-                f"{hours:02d}:"
-                f"{minutes:02d}:"
-                f"{seconds:02d}"
+                f"{bytes_value:.0f} B"
+            )
+
+        if bytes_value < 1024 ** 2:
+
+            return (
+                f"{bytes_value / 1024:.2f} KB"
+            )
+
+        if bytes_value < 1024 ** 3:
+
+            return (
+                f"{bytes_value / 1024 ** 2:.2f} MB"
             )
 
         return (
-            f"{minutes:02d}:"
-            f"{seconds:02d}"
+            f"{bytes_value / 1024 ** 3:.2f} GB"
         )
 
     # =========================================================
@@ -129,6 +178,7 @@ class MovieDownloader:
     def get_headers(self):
 
         return {
+
             "User-Agent": (
                 "Mozilla/5.0 "
                 "(Windows NT 10.0; Win64; x64) "
@@ -147,9 +197,6 @@ class MovieDownloader:
 
     # =========================================================
     # UPDATE STATUS
-    #
-    # IMPORTANT:
-    # DO NOT CHANGE status_data BACK TO status
     # =========================================================
 
     def update_status(
@@ -160,7 +207,29 @@ class MovieDownloader:
     ):
 
         with lock:
-            status_data.update(values)
+
+            status_data.update(
+                values
+            )
+
+    # =========================================================
+    # CHECK CANCEL
+    # =========================================================
+
+    def is_cancelled(
+        self,
+        status_data,
+        lock
+    ):
+
+        with lock:
+
+            return bool(
+                status_data.get(
+                    "cancel_requested",
+                    False
+                )
+            )
 
     # =========================================================
     # SET ERROR
@@ -174,6 +243,7 @@ class MovieDownloader:
     ):
 
         self.update_status(
+
             status_data,
             lock,
 
@@ -184,8 +254,6 @@ class MovieDownloader:
             completed=False,
 
             cancelled=False,
-
-            cancel_requested=False,
 
             error=message,
 
@@ -214,18 +282,27 @@ class MovieDownloader:
                 "Final download link not found"
             )
 
-            raise Exception(
-                "Final download link not found"
-            )
+            return
 
         print()
         print("=" * 60)
         print("DOWNLOAD START")
         print("=" * 60)
 
-        print("Movie :", self.movie_name)
-        print("URL   :", self.url)
-        print("File  :", self.filepath)
+        print(
+            "Movie :",
+            self.movie_name
+        )
+
+        print(
+            "URL   :",
+            self.url
+        )
+
+        print(
+            "File  :",
+            self.filepath
+        )
 
         print(
             "Mode  :",
@@ -249,6 +326,7 @@ class MovieDownloader:
         # =====================================================
 
         self.update_status(
+
             status_data,
             lock,
 
@@ -272,9 +350,9 @@ class MovieDownloader:
 
             speed=0,
 
-            eta="00:00",
+            eta="00:00:00",
 
-            elapsed="00:00",
+            elapsed="00:00:00",
 
             filename=self.filepath,
 
@@ -293,9 +371,12 @@ class MovieDownloader:
         try:
 
             print()
-            print("Connecting to server...")
+            print(
+                "Connecting to server..."
+            )
 
             response = requests.get(
+
                 self.url,
 
                 headers=self.get_headers(),
@@ -356,7 +437,7 @@ class MovieDownloader:
                 message
             )
 
-            raise Exception(message)
+            return
 
         except requests.exceptions.ConnectionError as e:
 
@@ -371,13 +452,19 @@ class MovieDownloader:
                 message
             )
 
-            raise Exception(message)
+            return
 
         except requests.exceptions.HTTPError as e:
 
+            status_code = (
+                response.status_code
+                if response is not None
+                else "unknown"
+            )
+
             message = (
                 "Download server returned HTTP "
-                f"{response.status_code}: {e}"
+                f"{status_code}: {e}"
             )
 
             self.set_error(
@@ -386,7 +473,7 @@ class MovieDownloader:
                 message
             )
 
-            raise Exception(message)
+            return
 
         except requests.RequestException as e:
 
@@ -401,7 +488,7 @@ class MovieDownloader:
                 message
             )
 
-            raise Exception(message)
+            return
 
         # =====================================================
         # CONTENT LENGTH
@@ -430,7 +517,7 @@ class MovieDownloader:
         # CONTENT RANGE FALLBACK
         # =====================================================
 
-        if total_size == 0:
+        if total_size <= 0:
 
             content_range = response.headers.get(
                 "Content-Range"
@@ -464,9 +551,9 @@ class MovieDownloader:
         # =====================================================
 
         total_mb = (
-            total_size /
-            1024 /
-            1024
+            total_size
+            / 1024
+            / 1024
         )
 
         print()
@@ -477,11 +564,12 @@ class MovieDownloader:
         )
 
         print(
-            "TOTAL MB:",
+            "TOTAL SIZE:",
             round(
                 total_mb,
                 2
-            )
+            ),
+            "MB"
         )
 
         # =====================================================
@@ -489,6 +577,7 @@ class MovieDownloader:
         # =====================================================
 
         self.update_status(
+
             status_data,
             lock,
 
@@ -500,14 +589,9 @@ class MovieDownloader:
 
             cancelled=False,
 
-            cancel_requested=False,
-
             movie_name=self.movie_name,
 
-            total=round(
-                total_mb,
-                2
-            ),
+            total=total_size,
 
             percentage=0,
 
@@ -515,9 +599,11 @@ class MovieDownloader:
 
             speed=0,
 
-            eta="00:00",
+            eta="00:00:00",
 
-            elapsed="00:00",
+            elapsed=self.format_time(
+                time.time() - start_time
+            ),
 
             filename=self.filepath,
 
@@ -531,11 +617,12 @@ class MovieDownloader:
 
         # =====================================================
         # CHUNK SIZE
+        #
+        # 1 MB makes progress updates and cancellation
+        # more responsive than 8 MB chunks.
         # =====================================================
 
-        chunk_size = (
-            8 * 1024 * 1024
-        )
+        chunk_size = 1024 * 1024
 
         # =====================================================
         # DOWNLOAD
@@ -552,29 +639,24 @@ class MovieDownloader:
                     chunk_size=chunk_size
                 ):
 
-                    if not chunk:
-                        continue
-
                     # =========================================
-                    # CHECK CANCEL
+                    # CHECK CANCEL BEFORE WRITE
                     # =========================================
 
-                    with lock:
-
-                        cancel_requested = bool(
-                            status_data.get(
-                                "cancel_requested",
-                                False
-                            )
-                        )
-
-                    if cancel_requested:
+                    if self.is_cancelled(
+                        status_data,
+                        lock
+                    ):
 
                         print(
                             "Stopping download..."
                         )
 
                         break
+
+                    if not chunk:
+
+                        continue
 
                     # =========================================
                     # WRITE
@@ -584,32 +666,39 @@ class MovieDownloader:
                         chunk
                     )
 
+                    file.flush()
+
                     downloaded += len(
                         chunk
                     )
 
                     # =========================================
-                    # TIME
+                    # CHECK CANCEL AFTER WRITE
                     # =========================================
 
-                    elapsed = (
+                    if self.is_cancelled(
+                        status_data,
+                        lock
+                    ):
+
+                        print(
+                            "Cancellation detected."
+                        )
+
+                        break
+
+                    # =========================================
+                    # ELAPSED
+                    # =========================================
+
+                    elapsed_seconds = (
                         time.time()
                         - start_time
                     )
 
-                    elapsed = max(
-                        elapsed,
+                    elapsed_seconds = max(
+                        elapsed_seconds,
                         0.001
-                    )
-
-                    # =========================================
-                    # DOWNLOADED MB
-                    # =========================================
-
-                    downloaded_mb = (
-                        downloaded /
-                        1024 /
-                        1024
                     )
 
                     # =========================================
@@ -617,14 +706,14 @@ class MovieDownloader:
                     # =========================================
 
                     speed_bytes = (
-                        downloaded /
-                        elapsed
+                        downloaded
+                        / elapsed_seconds
                     )
 
                     speed_mb = (
-                        speed_bytes /
-                        1024 /
-                        1024
+                        speed_bytes
+                        / 1024
+                        / 1024
                     )
 
                     # =========================================
@@ -634,13 +723,16 @@ class MovieDownloader:
                     if total_size > 0:
 
                         percentage = (
-                            downloaded /
-                            total_size
+                            downloaded
+                            / total_size
                         ) * 100
 
-                        percentage = min(
-                            percentage,
-                            100
+                        percentage = max(
+                            0,
+                            min(
+                                100,
+                                percentage
+                            )
                         )
 
                     else:
@@ -656,14 +748,14 @@ class MovieDownloader:
                         and speed_bytes > 0
                     ):
 
-                        remaining = (
-                            total_size
-                            - downloaded
+                        remaining = max(
+                            0,
+                            total_size - downloaded
                         )
 
                         eta_seconds = (
-                            remaining /
-                            speed_bytes
+                            remaining
+                            / speed_bytes
                         )
 
                     else:
@@ -671,10 +763,15 @@ class MovieDownloader:
                         eta_seconds = 0
 
                     # =========================================
-                    # UPDATE
+                    # UPDATE STATUS
+                    #
+                    # IMPORTANT:
+                    # downloaded and total are BYTES.
+                    # The frontend converts them to MB/GB.
                     # =========================================
 
                     self.update_status(
+
                         status_data,
                         lock,
 
@@ -693,27 +790,18 @@ class MovieDownloader:
                             2
                         ),
 
-                        downloaded=round(
-                            downloaded_mb,
-                            2
-                        ),
+                        downloaded=downloaded,
 
-                        total=round(
-                            total_mb,
-                            2
-                        ),
+                        total=total_size,
 
-                        speed=round(
-                            speed_mb,
-                            2
-                        ),
+                        speed=speed_bytes,
 
                         eta=self.format_time(
                             eta_seconds
                         ),
 
                         elapsed=self.format_time(
-                            elapsed
+                            elapsed_seconds
                         ),
 
                         filename=self.filepath,
@@ -727,23 +815,23 @@ class MovieDownloader:
                     )
 
             # =================================================
-            # CHECK CANCELLED
+            # CHECK CANCELLATION
             # =================================================
 
-            with lock:
-
-                cancelled = bool(
-                    status_data.get(
-                        "cancel_requested",
-                        False
-                    )
-                )
+            cancelled = self.is_cancelled(
+                status_data,
+                lock
+            )
 
             if cancelled:
 
                 print(
                     "Download cancelled."
                 )
+
+                # =============================================
+                # DELETE PARTIAL FILE
+                # =============================================
 
                 try:
 
@@ -755,11 +843,26 @@ class MovieDownloader:
                             self.filepath
                         )
 
-                except OSError:
+                        print(
+                            "Partial file deleted."
+                        )
 
-                    pass
+                except OSError as e:
+
+                    print(
+                        "Could not delete partial file:",
+                        e
+                    )
+
+                # =============================================
+                # CANCELLED STATUS
+                #
+                # IMPORTANT:
+                # cancel_requested stays TRUE.
+                # =============================================
 
                 self.update_status(
+
                     status_data,
                     lock,
 
@@ -771,7 +874,7 @@ class MovieDownloader:
 
                     cancelled=True,
 
-                    cancel_requested=False,
+                    cancel_requested=True,
 
                     error=None,
 
@@ -781,7 +884,11 @@ class MovieDownloader:
 
                     speed=0,
 
-                    eta="00:00",
+                    eta="00:00:00",
+
+                    elapsed="00:00:00",
+
+                    filename=self.filepath,
 
                     message=(
                         f"{self.movie_name} "
@@ -803,9 +910,65 @@ class MovieDownloader:
                 message
             )
 
-            raise Exception(message)
+            return
 
         except Exception as e:
+
+            # =============================================
+            # If cancellation caused the exception,
+            # don't turn it into an error.
+            # =============================================
+
+            if self.is_cancelled(
+                status_data,
+                lock
+            ):
+
+                try:
+
+                    if os.path.exists(
+                        self.filepath
+                    ):
+
+                        os.remove(
+                            self.filepath
+                        )
+
+                except OSError:
+
+                    pass
+
+                self.update_status(
+
+                    status_data,
+                    lock,
+
+                    status="cancelled",
+
+                    running=False,
+
+                    completed=False,
+
+                    cancelled=True,
+
+                    cancel_requested=True,
+
+                    error=None,
+
+                    percentage=0,
+
+                    downloaded=0,
+
+                    speed=0,
+
+                    eta="00:00:00",
+
+                    elapsed="00:00:00",
+
+                    message="Download cancelled"
+                )
+
+                return
 
             message = (
                 f"Download failed: {e}"
@@ -817,13 +980,80 @@ class MovieDownloader:
                 message
             )
 
-            raise
+            return
 
         finally:
 
             if response is not None:
 
-                response.close()
+                try:
+
+                    response.close()
+
+                except Exception:
+
+                    pass
+
+        # =====================================================
+        # FINAL CANCEL CHECK
+        # =====================================================
+
+        if self.is_cancelled(
+            status_data,
+            lock
+        ):
+
+            print(
+                "Final cancellation detected."
+            )
+
+            try:
+
+                if os.path.exists(
+                    self.filepath
+                ):
+
+                    os.remove(
+                        self.filepath
+                    )
+
+            except OSError:
+
+                pass
+
+            self.update_status(
+
+                status_data,
+                lock,
+
+                status="cancelled",
+
+                running=False,
+
+                completed=False,
+
+                cancelled=True,
+
+                cancel_requested=True,
+
+                error=None,
+
+                percentage=0,
+
+                downloaded=0,
+
+                speed=0,
+
+                eta="00:00:00",
+
+                elapsed="00:00:00",
+
+                filename=self.filepath,
+
+                message="Download cancelled"
+            )
+
+            return
 
         # =====================================================
         # FINAL TIME
@@ -844,9 +1074,9 @@ class MovieDownloader:
         # =====================================================
 
         final_mb = (
-            downloaded /
-            1024 /
-            1024
+            downloaded
+            / 1024
+            / 1024
         )
 
         # =====================================================
@@ -854,14 +1084,18 @@ class MovieDownloader:
         # =====================================================
 
         average_speed = (
-            downloaded /
-            duration /
-            1024 /
-            1024
+            downloaded
+            / duration
+        )
+
+        average_speed_mb = (
+            average_speed
+            / 1024
+            / 1024
         )
 
         # =====================================================
-        # VERIFY
+        # VERIFY DOWNLOAD
         # =====================================================
 
         if downloaded <= 0:
@@ -877,13 +1111,47 @@ class MovieDownloader:
                 message
             )
 
-            raise Exception(message)
+            return
+
+        # =====================================================
+        # OPTIONAL SIZE CHECK
+        # =====================================================
+
+        if (
+            total_size > 0
+            and downloaded < total_size
+        ):
+
+            print()
+            print(
+                "WARNING:"
+            )
+
+            print(
+                "Expected:",
+                self.format_size(
+                    total_size
+                )
+            )
+
+            print(
+                "Received:",
+                self.format_size(
+                    downloaded
+                )
+            )
+
+            print(
+                "Download ended before "
+                "Content-Length was reached."
+            )
 
         # =====================================================
         # COMPLETED
         # =====================================================
 
         self.update_status(
+
             status_data,
             lock,
 
@@ -903,22 +1171,13 @@ class MovieDownloader:
 
             percentage=100,
 
-            downloaded=round(
-                final_mb,
-                2
-            ),
+            downloaded=downloaded,
 
-            total=round(
-                total_mb,
-                2
-            ),
+            total=total_size,
 
-            speed=round(
-                average_speed,
-                2
-            ),
+            speed=average_speed,
 
-            eta="00:00",
+            eta="00:00:00",
 
             elapsed=self.format_time(
                 duration
@@ -933,7 +1192,7 @@ class MovieDownloader:
         )
 
         # =====================================================
-        # PRINT
+        # PRINT FINAL INFORMATION
         # =====================================================
 
         print()
@@ -963,10 +1222,17 @@ class MovieDownloader:
         print(
             "Average speed:",
             round(
-                average_speed,
+                average_speed_mb,
                 2
             ),
             "MB/s"
+        )
+
+        print(
+            "Elapsed:",
+            self.format_time(
+                duration
+            )
         )
 
         print(

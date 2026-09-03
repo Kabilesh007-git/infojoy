@@ -874,3 +874,227 @@ body {
         font-size: 16px;
     }
 }
+
+
+/* ============================================================
+   MAIN BUTTONS
+   ============================================================ */
+
+.main-buttons {
+    display: flex;
+    gap: 14px;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+
+/* ============================================================
+   HOME BUTTON
+   ============================================================ */
+
+.home-btn {
+    min-height: 52px;
+    padding: 0 28px;
+
+    border: 1px solid #555;
+    border-radius: 8px;
+
+    background: #333;
+    color: white;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.home-btn:hover {
+    background: #444;
+    transform: translateY(-1px);
+}
+
+
+.home-btn:active {
+    transform: translateY(0);
+}
+
+
+/* ============================================================
+   DOWNLOAD BUTTONS
+   ============================================================ */
+
+.download-buttons {
+    display: flex;
+    gap: 12px;
+    margin-top: 25px;
+    align-items: center;
+}
+
+
+/* ============================================================
+   CANCEL BUTTON
+   ============================================================ */
+
+.cancel-btn {
+    min-height: 50px;
+
+    padding: 0 25px;
+
+    border: 1px solid #ff3b3b;
+
+    border-radius: 8px;
+
+    background: transparent;
+
+    color: #ff3b3b;
+
+    font-size: 15px;
+
+    font-weight: 700;
+
+    cursor: pointer;
+
+    transition:
+        background 0.2s ease,
+        color 0.2s ease,
+        transform 0.2s ease;
+}
+
+
+.cancel-btn:hover {
+    background: #ff3b3b;
+    color: white;
+}
+
+
+.cancel-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+
+/* ============================================================
+   DOWNLOAD STATUS
+   ============================================================ */
+
+.download-status {
+    margin-top: 28px;
+    padding: 24px;
+
+    border: 1px solid #333;
+
+    border-radius: 12px;
+
+    background: rgba(0, 0, 0, 0.55);
+
+    backdrop-filter: blur(8px);
+}
+
+
+/* ============================================================
+   DOWNLOAD TITLE
+   ============================================================ */
+
+.download-title {
+    margin-bottom: 20px;
+
+    font-size: 21px;
+
+    font-weight: 700;
+
+    color: white;
+}
+
+
+/* ============================================================
+   PROGRESS BOX
+   ============================================================ */
+
+.progress-box {
+    width: 100%;
+
+    height: 10px;
+
+    overflow: hidden;
+
+    border-radius: 10px;
+
+    background: #292929;
+
+    margin-bottom: 22px;
+}
+
+
+/* ============================================================
+   PROGRESS BAR
+   ============================================================ */
+
+.progress-bar {
+    width: 0%;
+
+    height: 100%;
+
+    border-radius: 10px;
+
+    background: #ffffff;
+
+    transition: width 0.35s ease;
+}
+
+
+/* ============================================================
+   DOWNLOAD INFO
+   ============================================================ */
+
+.download-info {
+    display: flex;
+
+    justify-content: space-between;
+
+    gap: 30px;
+
+    margin-top: 15px;
+
+    color: #aaa;
+
+    font-size: 15px;
+}
+
+
+.download-info strong {
+    color: white;
+
+    margin-left: 5px;
+}
+
+
+/* ============================================================
+   MOBILE
+   ============================================================ */
+
+@media (max-width: 700px) {
+
+    .main-buttons {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .main-buttons button {
+        width: 100%;
+    }
+
+    .download-info {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .download-status {
+        padding: 18px;
+    }
+
+}
